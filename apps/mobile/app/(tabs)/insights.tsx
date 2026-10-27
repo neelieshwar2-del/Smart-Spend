@@ -8,11 +8,16 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TrendingDown, TrendingUp, Sparkles, Calendar } from 'lucide-react-native';
+import {
+  Wallet,
+  Calendar,
+  Utensils,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { useDashboard } from '../../src/hooks/useDashboard';
-import { INITIAL_RECURRING } from '../../src/services/mockData';
 import { getCategoryIcon } from '../../src/components/dashboard/RecentTransactions';
 
 export default function InsightsScreen() {
@@ -22,7 +27,7 @@ export default function InsightsScreen() {
   const { dashboard, isLoading, refetch } = useDashboard();
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
 
-  // 7-day spending trends mock
+  // 7-day spending trend mock
   const weeklyData = [
     { day: 'Mon', amount: 840, target: 1200 },
     { day: 'Tue', amount: 1450, target: 1200 },
@@ -34,23 +39,17 @@ export default function InsightsScreen() {
   ];
   const maxBar = Math.max(...weeklyData.map(d => d.amount));
 
+  const topCat = dashboard?.topCategories?.[0] || {
+    name: 'Food & Dining',
+    amountFormatted: '₹8,450.00',
+    percentage: 30,
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 16) }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }]}>
-        <View>
-          <Text style={[typography.headline, { color: colors.textPrimary, fontWeight: '700' }]}>
-            Spending Analytics
-          </Text>
-          <Text style={[typography.caption, { color: colors.textSecondary }]}>
-            Grounded behavioral trends and forecasting
-          </Text>
-        </View>
-      </View>
-
-      {/* Period Tabs */}
-      <View style={{ paddingHorizontal: spacing.lg, marginVertical: spacing.sm }}>
-        <View style={[styles.periodSwitcher, { backgroundColor: colors.cardSubtle, borderColor: colors.border, borderRadius: radii.pill }]}>
+      {/* Period Selector Pill Tabs */}
+      <View style={{ paddingHorizontal: spacing.lg, marginVertical: 6 }}>
+        <View style={[styles.periodBar, { backgroundColor: colors.surfaceContainer }]}>
           {(['week', 'month', 'quarter', 'year'] as const).map((p) => {
             const isSelected = selectedPeriod === p;
             return (
@@ -60,7 +59,7 @@ export default function InsightsScreen() {
                 onPress={() => setSelectedPeriod(p)}
                 style={[
                   styles.periodTab,
-                  isSelected && { backgroundColor: colors.primary, borderRadius: radii.pill },
+                  isSelected && { backgroundColor: colors.primary, borderRadius: 9999 },
                 ]}
               >
                 <Text
@@ -82,96 +81,130 @@ export default function InsightsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 100, gap: 14 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor={colors.primary} />}
       >
-        {/* 2x2 Analytics Metric Grid */}
-        <View style={styles.grid}>
-          {/* Total Spent */}
-          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.lg }]}>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>Total Spent</Text>
-            <Text style={[typography.title, typography.currency, { color: colors.textPrimary, marginVertical: 4 }]}>
-              {dashboard?.summary.totalExpensesFormatted || '₹28,450.00'}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TrendingUp size={12} color={colors.danger} />
-              <Text style={[typography.caption, { color: colors.danger, marginLeft: 4, fontWeight: '600' }]}>
-                +8% vs last month
+        {/* AI Smart Financial Delight Banner */}
+        <View style={[styles.delightBanner, { backgroundColor: colors.secondaryContainer }]}>
+          <View style={[styles.delightIconCircle, { backgroundColor: 'rgba(65, 105, 0, 0.15)' }]}>
+            <Sparkles size={18} color={colors.secondary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[typography.caption, { color: colors.secondary, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }]}>
+                Smart Insight
               </Text>
+              <View style={[styles.bannerDot, { backgroundColor: colors.secondary }]} />
             </View>
-          </View>
-
-          {/* Daily Average */}
-          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.lg }]}>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>Daily Average</Text>
-            <Text style={[typography.title, typography.currency, { color: colors.textPrimary, marginVertical: 4 }]}>
-              ₹917.00
-            </Text>
-            <Text style={[typography.caption, { color: colors.success, fontWeight: '600' }]}>
-              Under daily budget
-            </Text>
-          </View>
-
-          {/* Top Category */}
-          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.lg }]}>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>Top Category</Text>
-            <Text style={[typography.title, { color: colors.textPrimary, marginVertical: 4 }]} numberOfLines={1}>
-              {dashboard?.topCategories[0]?.name || 'Food & Dining'}
-            </Text>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {dashboard?.topCategories[0]?.percentage || 39}% of total spend
-            </Text>
-          </View>
-
-          {/* Net Cash Flow */}
-          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.lg }]}>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>Net Savings</Text>
-            <Text style={[typography.title, typography.currency, { color: colors.success, marginVertical: 4 }]}>
-              {dashboard?.summary.netCashFlowFormatted || '+₹56,550.00'}
-            </Text>
-            <Text style={[typography.caption, { color: colors.success, fontWeight: '600' }]}>
-              66% savings rate
+            <Text style={[typography.bodySm, { color: colors.onSecondaryContainer, fontWeight: '500', marginTop: 3, lineHeight: 18 }]}>
+              {dashboard?.smartTip || 'Your spending patterns and category pace will update dynamically as transactions are recorded.'}
             </Text>
           </View>
         </View>
 
-        {/* Weekly Spending Trend Chart */}
-        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.card, marginTop: spacing.lg }]}>
-          <View style={styles.chartHeader}>
-            <View>
-              <Text style={[typography.title, { color: colors.textPrimary }]}>Weekly Spending Pace</Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>Daily totals vs ₹1,200 daily target</Text>
+        {/* 2x2 Analytics Metric Grid */}
+        <View style={styles.grid}>
+          {/* Metric 1: Total Spent */}
+          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.metricHeader}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>Total Spent</Text>
+              <View style={[styles.metricIconCircle, { backgroundColor: colors.surfaceContainerLow }]}>
+                <Wallet size={16} color={colors.primary} />
+              </View>
             </View>
-            <View style={[styles.targetPill, { backgroundColor: colors.cardSubtle }]}>
-              <View style={[styles.targetDot, { backgroundColor: colors.accentDark }]} />
-              <Text style={[typography.caption, { color: colors.textSecondary, fontWeight: '600' }]}>Target line</Text>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[typography.title, typography.currency, { color: colors.primary, fontWeight: '700' }]}>
+                {dashboard?.summary.totalExpensesFormatted || '₹0'}
+              </Text>
+              <Text style={[typography.caption, { color: colors.secondary, marginTop: 4, fontWeight: '600' }]}>
+                Current cycle
+              </Text>
             </View>
           </View>
 
-          {/* Bar Chart Visualization */}
+          {/* Metric 2: Daily Average */}
+          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.metricHeader}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>Daily Average</Text>
+              <View style={[styles.metricIconCircle, { backgroundColor: colors.surfaceContainerLow }]}>
+                <Calendar size={16} color={colors.primary} />
+              </View>
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[typography.title, typography.currency, { color: colors.primary, fontWeight: '700' }]}>
+                {dashboard?.todaySpending.dailyTargetFormatted || '₹0'}
+              </Text>
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>
+                Calculated daily
+              </Text>
+            </View>
+          </View>
+
+          {/* Metric 3: Top Category */}
+          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.metricHeader}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>Top Category</Text>
+              <View style={[styles.metricIconCircle, { backgroundColor: 'rgba(182, 241, 106, 0.4)' }]}>
+                <Utensils size={16} color={colors.secondary} />
+              </View>
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[typography.subtitle, { color: colors.primary, fontWeight: '700' }]} numberOfLines={1}>
+                {topCat.name}
+              </Text>
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+                {topCat.amountFormatted} ({topCat.percentage}%)
+              </Text>
+            </View>
+          </View>
+
+          {/* Metric 4: Safe to Spend */}
+          <View style={[styles.metricCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.metricHeader}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>Safe to Spend</Text>
+              <View style={[styles.metricIconCircle, { backgroundColor: 'rgba(182, 241, 106, 0.3)' }]}>
+                <ShieldCheck size={16} color={colors.secondary} />
+              </View>
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[typography.title, typography.currency, { color: colors.secondary, fontWeight: '700' }]}>
+                {dashboard?.todaySpending.bufferRemainingFormatted || '₹0'}
+              </Text>
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>
+                {dashboard?.monthlyBudget.daysRemaining || 0} days remaining
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Weekly Spending Trend Bar Chart */}
+        <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[typography.title, { color: colors.textPrimary, fontWeight: '700' }]}>
+            7-Day Spending Trend
+          </Text>
+          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+            Daily spending compared to ₹1,200 baseline
+          </Text>
+
           <View style={styles.barsContainer}>
             {weeklyData.map((d) => {
-              const heightPercent = (d.amount / maxBar) * 100;
+              const heightRatio = d.amount / (maxBar || 1);
               const isOver = d.amount > d.target;
               return (
-                <View key={d.day} style={styles.barCol}>
-                  <Text style={[typography.caption, { color: colors.textSecondary, fontSize: 10, marginBottom: 4 }]}>
-                    ₹{d.amount}
-                  </Text>
-                  <View style={[styles.barTrack, { backgroundColor: colors.cardSubtle }]}>
+                <View key={d.day} style={styles.barColumn}>
+                  <View style={styles.barSlot}>
                     <View
                       style={[
-                        styles.barBar,
+                        styles.barFill,
                         {
-                          height: `${heightPercent}%`,
-                          backgroundColor: isOver ? colors.danger : colors.accent,
-                          borderRadius: radii.sm,
+                          height: `${Math.max(12, Math.min(heightRatio * 100, 100))}%`,
+                          backgroundColor: isOver ? colors.danger : colors.primary,
                         },
                       ]}
                     />
                   </View>
-                  <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '600', marginTop: 6 }]}>
+                  <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 6 }]}>
                     {d.day}
                   </Text>
                 </View>
@@ -186,7 +219,7 @@ export default function InsightsScreen() {
             Category Allocations
           </Text>
 
-          {dashboard?.topCategories.map((cat) => (
+          {dashboard?.topCategories.map((cat: any) => (
             <View key={cat.name} style={{ marginBottom: spacing.md }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -222,13 +255,17 @@ export default function InsightsScreen() {
             <Text style={[typography.caption, { color: colors.textSecondary }]}>3 Active</Text>
           </View>
 
-          {INITIAL_RECURRING.map((sub, idx) => (
+          {[
+            { id: '1', title: 'Netflix Standard', nextDueDate: '02 Nov', amountFormatted: '₹499.00' },
+            { id: '2', title: 'Cult.fit Elite Pass', nextDueDate: '08 Nov', amountFormatted: '₹1,450.00' },
+            { id: '3', title: 'Spotify Premium Family', nextDueDate: '15 Nov', amountFormatted: '₹179.00' },
+          ].map((sub, idx, arr) => (
             <View
               key={sub.id}
               style={[
                 styles.subRow,
                 {
-                  borderBottomWidth: idx === INITIAL_RECURRING.length - 1 ? 0 : 1,
+                  borderBottomWidth: idx === arr.length - 1 ? 0 : 1,
                   borderBottomColor: colors.border,
                   paddingVertical: spacing.sm,
                 },
@@ -253,15 +290,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  periodBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  periodSwitcher: {
-    flexDirection: 'row',
-    padding: 4,
-    borderWidth: 1,
+    padding: 3,
+    borderRadius: 9999,
   },
   periodTab: {
     flex: 1,
@@ -269,61 +301,93 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  grid: {
+  delightBanner: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
     gap: 12,
-  },
-  metricCard: {
-    width: '48%',
     padding: 14,
-    borderWidth: 1,
+    borderRadius: 18,
+    shadowColor: '#446E00',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  chartCard: {
-    padding: 16,
-    borderWidth: 1,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  delightIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginTop: 2,
   },
-  targetPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-    gap: 4,
-  },
-  targetDot: {
+  bannerDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  metricCard: {
+    width: '48%',
+    flexGrow: 1,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  metricHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metricIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chartCard: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
   },
   barsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     height: 140,
-    paddingTop: 10,
+    marginTop: 16,
+    paddingHorizontal: 4,
   },
-  barCol: {
-    flex: 1,
+  barColumn: {
     alignItems: 'center',
+    flex: 1,
     height: '100%',
     justifyContent: 'flex-end',
   },
-  barTrack: {
-    width: 14,
-    height: 90,
+  barSlot: {
+    flex: 1,
+    width: 18,
     justifyContent: 'flex-end',
-    borderRadius: 4,
-    overflow: 'hidden',
+    alignItems: 'center',
   },
-  barBar: {
+  barFill: {
     width: '100%',
+    borderRadius: 6,
   },
   breakdownCard: {
     padding: 16,

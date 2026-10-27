@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ShieldCheck, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { MonthlyBudget } from '../../types';
 
@@ -12,117 +11,98 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ budget }) => {
   const { colors, spacing, radii, typography } = useTheme();
 
   const isExceeded = budget.warningStatus === 'exceeded';
-  const isCritical = budget.warningStatus === 'critical' || budget.warningStatus === 'warning';
+  const percentLeft = Math.max(0, 100 - budget.percentageUsed);
 
   return (
     <View
       style={[
         styles.card,
         {
-          backgroundColor: colors.primary,
+          backgroundColor: colors.primaryContainer,
           borderRadius: radii.card,
-          padding: spacing.xl,
+          padding: spacing.lg,
         },
       ]}
     >
-      {/* Header Row */}
-      <View style={styles.header}>
-        <View style={styles.badgeRow}>
-          <View
-            style={[
-              styles.iconWrapper,
-              { backgroundColor: isExceeded ? colors.danger : colors.accent },
-            ]}
-          >
-            {isExceeded ? (
-              <AlertCircle size={16} color={colors.textInverse} />
-            ) : (
-              <ShieldCheck size={16} color={colors.primary} />
-            )}
+      {/* Ambient subtle glow decoration */}
+      <View style={styles.ambientGlow} pointerEvents="none" />
+
+      <View style={{ zIndex: 1, gap: 14 }}>
+        {/* Header Row: Label & Days Remaining */}
+        <View style={styles.headerRow}>
+          <Text style={[typography.subtitle, { color: colors.onPrimaryContainer, fontWeight: '500', letterSpacing: 0.3 }]}>
+            Monthly Spend Limit
+          </Text>
+
+          <View style={styles.daysBadge}>
+            <View style={[styles.pulseDot, { backgroundColor: isExceeded ? colors.danger : colors.secondaryContainer }]} />
+            <Text style={[typography.caption, { color: colors.onPrimary, fontWeight: '600' }]}>
+              {budget.daysRemaining} days remaining
+            </Text>
           </View>
-          <Text style={[typography.caption, { color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.8 }]}>
-            Safe Monthly Balance
-          </Text>
         </View>
 
-        <View
-          style={[
-            styles.percentagePill,
-            {
-              backgroundColor: isExceeded
-                ? 'rgba(217, 92, 92, 0.2)'
-                : 'rgba(184, 243, 107, 0.2)',
-            },
-          ]}
-        >
-          <Text
-            style={[
-              typography.caption,
-              {
-                color: isExceeded ? colors.danger : colors.accent,
-                fontWeight: '700',
-              },
-            ]}
-          >
-            {budget.percentageUsed}% spent
-          </Text>
-        </View>
-      </View>
-
-      {/* Main Remaining Amount */}
-      <View style={{ marginVertical: spacing.md }}>
-        <Text
-          style={[
-            typography.display,
-            typography.currency,
-            { color: isExceeded ? colors.danger : colors.accent },
-          ]}
-        >
-          {budget.remainingSafeFormatted}
-        </Text>
-        <Text style={[typography.bodySm, { color: '#94A3B8', marginTop: 2 }]}>
-          Remaining of {budget.amountLimitFormatted} limit ({budget.daysRemaining} days left)
-        </Text>
-      </View>
-
-      {/* Progress Bar */}
-      <View
-        style={[
-          styles.progressBarBg,
-          { backgroundColor: 'rgba(255, 255, 255, 0.12)', borderRadius: radii.pill },
-        ]}
-      >
-        <View
-          style={[
-            styles.progressBarFill,
-            {
-              backgroundColor: isExceeded ? colors.danger : colors.accent,
-              width: `${Math.min(budget.percentageUsed, 100)}%`,
-              borderRadius: radii.pill,
-            },
-          ]}
-        />
-      </View>
-
-      {/* Footer Metrics */}
-      <View style={[styles.footer, { marginTop: spacing.md }]}>
+        {/* Main Balance Display */}
         <View>
-          <Text style={[typography.caption, { color: '#64748B' }]}>Total Spent MTD</Text>
-          <Text style={[typography.body, typography.currency, { color: '#F1F5F9' }]}>
-            {budget.totalSpentFormatted}
+          <View style={styles.balanceRow}>
+            <Text
+              style={[
+                typography.display,
+                typography.currency,
+                { color: colors.onPrimary, fontWeight: '700' },
+              ]}
+            >
+              {budget.remainingSafeFormatted}
+            </Text>
+
+            <View
+              style={[
+                styles.percentPill,
+                {
+                  backgroundColor: isExceeded ? 'rgba(186, 26, 26, 0.25)' : 'rgba(182, 241, 106, 0.2)',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  typography.caption,
+                  {
+                    color: isExceeded ? '#FFB4AB' : colors.secondaryContainer,
+                    fontWeight: '700',
+                  },
+                ]}
+              >
+                {isExceeded ? 'Exceeded' : `${percentLeft}% left`}
+              </Text>
+            </View>
+          </View>
+          <Text style={[typography.bodySm, { color: colors.onPrimaryContainer, marginTop: 4 }]}>
+            Remaining safe balance to spend
           </Text>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={[typography.caption, { color: '#64748B' }]}>Recommended Pace</Text>
-          <Text
-            style={[
-              typography.body,
-              typography.currency,
-              { color: colors.accent, fontWeight: '700' },
-            ]}
-          >
-            {budget.dailyAllowanceFormatted}/day
-          </Text>
+
+        {/* Custom Progress Bar */}
+        <View style={{ gap: 6 }}>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: isExceeded ? colors.danger : colors.secondaryContainer,
+                  width: `${Math.min(budget.percentageUsed, 100)}%`,
+                },
+              ]}
+            />
+          </View>
+
+          <View style={styles.footerRow}>
+            <Text style={[typography.caption, { color: colors.onPrimaryContainer }]}>
+              Spent: <Text style={{ color: colors.onPrimary, fontWeight: '600' }}>{budget.amountSpentFormatted}</Text>
+            </Text>
+            <Text style={[typography.caption, { color: colors.onPrimaryContainer }]}>
+              Target: <Text style={{ color: colors.onPrimary, fontWeight: '600' }}>{budget.amountLimitFormatted}</Text> • <Text style={{ color: colors.secondaryContainer }}>{budget.dailyAllowanceFormatted}/day</Text>
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -132,43 +112,65 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({ budget }) => {
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  header: {
+  ambientGlow: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(182, 241, 106, 0.12)',
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  badgeRow: {
+  daysBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  iconWrapper: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  percentagePill: {
+    gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
-  progressBarBg: {
-    height: 8,
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 10,
+  },
+  percentPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 9999,
+  },
+  progressTrack: {
     width: '100%',
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 9999,
     overflow: 'hidden',
+    padding: 1.5,
   },
-  progressBarFill: {
+  progressFill: {
     height: '100%',
+    borderRadius: 9999,
   },
-  footer: {
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

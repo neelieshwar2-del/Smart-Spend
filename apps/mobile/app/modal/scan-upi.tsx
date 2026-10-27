@@ -2,107 +2,88 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, QrCode, Sparkles, CheckCircle2 } from 'lucide-react-native';
+import { X, QrCode, ScanLine, Flashlight, Image as ImageIcon } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 
 export default function ScanUpiModal() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors, spacing, radii, typography } = useTheme();
+  const { colors, typography } = useTheme();
 
-  const presets = [
-    { merchant: 'Blue Tokai Coffee Roasters', vpa: 'bluetokai@icici', amount: 450, categoryId: 'cat_food' },
-    { merchant: 'Uber India Technology', vpa: 'uber.ride@axis', amount: 390, categoryId: 'cat_transport' },
-    { merchant: 'Blinkit Instant Commerce', vpa: 'blinkit@hdfcbank', amount: 1450, categoryId: 'cat_groceries' },
-  ];
+  const [upiInput, setUpiInput] = useState<string>('');
 
-  const handleSelectPreset = (p: typeof presets[0]) => {
-    // Open add-transaction prefilled
+  const handleCapture = () => {
     router.replace('/modal/add-transaction');
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
-        <Text style={[typography.title, { color: colors.textPrimary }]}>Scan Any UPI QR</Text>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 16), paddingBottom: insets.bottom + 16 }]}>
+      {/* Top Header */}
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <ScanLine size={24} color={colors.secondaryContainer} />
+          <Text style={[typography.title, { color: '#FFFFFF', fontWeight: '700' }]}>
+            Scan UPI QR Code
+          </Text>
+        </View>
+
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => router.back()}
-          style={[styles.closeBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={styles.closeBtn}
         >
-          <X size={18} color={colors.textPrimary} />
+          <X size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.lg, alignItems: 'center', paddingBottom: insets.bottom + 20 }}>
-        {/* Scanner Viewfinder Box */}
-        <View style={[styles.viewfinder, { borderColor: colors.accent, borderRadius: radii.xl }]}>
-          <View style={styles.cornerTL} />
-          <View style={styles.cornerTR} />
-          <View style={styles.cornerBL} />
-          <View style={styles.cornerBR} />
-
-          <QrCode size={110} color={colors.textSecondary} style={{ opacity: 0.3 }} />
-
-          {/* Animated Laser Line */}
-          <View style={[styles.laser, { backgroundColor: colors.accent }]} />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Scanner Viewport */}
+        <View style={[styles.viewfinder, { borderColor: colors.secondaryContainer }]}>
+          <QrCode size={90} color="#64748B" style={{ opacity: 0.35 }} />
+          <View style={[styles.laser, { backgroundColor: colors.secondaryContainer }]} />
+          <Text style={[typography.caption, { color: colors.secondaryContainer, position: 'absolute', bottom: 12, fontWeight: '600' }]}>
+            Align QR code inside frame
+          </Text>
         </View>
 
-        <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600', marginTop: spacing.lg }]}>
-          Point Camera at BharatPe / Paytm / PhonePe QR
-        </Text>
-        <Text style={[typography.caption, { color: colors.textSecondary, textAlign: 'center', marginTop: 4, maxWidth: 280 }]}>
-          Automatically extracts merchant name, UPI ID, and pre-fills your transaction.
-        </Text>
+        {/* Manual UPI Input & Capture Bar */}
+        <View style={styles.inputBar}>
+          <TextInput
+            placeholder="Enter UPI ID or Merchant"
+            placeholderTextColor="#94A3B8"
+            value={upiInput}
+            onChangeText={setUpiInput}
+            style={[typography.bodySm, styles.input]}
+          />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleCapture}
+            style={[styles.captureBtn, { backgroundColor: colors.secondaryContainer }]}
+          >
+            <Text style={[typography.caption, { color: colors.primary, fontWeight: '700' }]}>
+              Capture
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* Quick Simulator Presets */}
-        <View style={{ width: '100%', marginTop: spacing.xl }}>
-          <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }]}>
-            Quick Sample QR Codes
-          </Text>
+        {/* Bottom Utility Actions (Flashlight, Gallery) */}
+        <View style={styles.bottomActions}>
+          <TouchableOpacity activeOpacity={0.7} style={styles.actionBtn}>
+            <Flashlight size={18} color="#94A3B8" />
+            <Text style={[typography.caption, { color: '#94A3B8' }]}>Flashlight</Text>
+          </TouchableOpacity>
 
-          {presets.map((p) => (
-            <TouchableOpacity
-              key={p.vpa}
-              activeOpacity={0.8}
-              onPress={() => handleSelectPreset(p)}
-              style={[
-                styles.presetCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  borderRadius: radii.lg,
-                  padding: spacing.md,
-                  marginBottom: spacing.sm,
-                },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                  {p.merchant}
-                </Text>
-                <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                  {p.vpa}
-                </Text>
-              </View>
-
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={[typography.body, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
-                  ₹{p.amount}.00
-                </Text>
-                <Text style={[typography.caption, { color: colors.accentDark, fontWeight: '700' }]}>
-                  Simulate Tap
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity activeOpacity={0.7} style={styles.actionBtn}>
+            <ImageIcon size={18} color="#94A3B8" />
+            <Text style={[typography.caption, { color: '#94A3B8' }]}>Upload QR</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -112,85 +93,94 @@ export default function ScanUpiModal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#01081A',
+    justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    gap: 24,
   },
   viewfinder: {
-    width: 250,
-    height: 250,
+    width: 260,
+    height: 260,
+    borderRadius: 24,
     borderWidth: 2,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
     position: 'relative',
-    backgroundColor: '#0F172A',
+    overflow: 'hidden',
+    shadowColor: '#B6F16A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
   },
   laser: {
     position: 'absolute',
+    top: '40%',
     width: '90%',
-    height: 3,
-    top: '50%',
-    shadowColor: '#B8F36B',
+    height: 2,
+    shadowColor: '#B6F16A',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 6,
   },
-  cornerTL: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 24,
-    height: 24,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: '#B8F36B',
-  },
-  cornerTR: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderColor: '#B8F36B',
-  },
-  cornerBL: {
-    position: 'absolute',
-    bottom: -2,
-    left: -2,
-    width: 24,
-    height: 24,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: '#B8F36B',
-  },
-  cornerBR: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderColor: '#B8F36B',
-  },
-  presetCard: {
+  inputBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    height: 42,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    backgroundColor: '#172033',
+    color: '#FFFFFF',
     borderWidth: 1,
+    borderColor: '#233048',
+  },
+  captureBtn: {
+    paddingHorizontal: 16,
+    height: 42,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 24,
+    marginTop: 10,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

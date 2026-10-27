@@ -9,7 +9,19 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Check } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Check,
+  Store,
+  FileText,
+  ShieldCheck,
+  Zap,
+  Wallet,
+  Banknote,
+  CreditCard,
+  X,
+  BadgeCheck,
+} from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { Keypad } from '../../src/components/common/Keypad';
@@ -28,10 +40,9 @@ export default function AddTransactionModal() {
   const [type, setType] = useState<TransactionType>('expense');
   const [amountStr, setAmountStr] = useState<string>('0');
   const [selectedCatId, setSelectedCatId] = useState<string>(INITIAL_CATEGORIES[0].id);
-  const [title, setTitle] = useState<string>('');
   const [merchant, setMerchant] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [note, setNote] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   // Keypad Actions
@@ -64,7 +75,7 @@ export default function AddTransactionModal() {
     setAmountStr((prev: string) => prev.slice(0, -1));
   };
 
-  const handleQuickAdd = (amt: number) => {
+  const handlePresetAdd = (amt: number) => {
     const current = parseFloat(amountStr) || 0;
     setAmountStr(String(Math.round(current + amt)));
   };
@@ -76,16 +87,15 @@ export default function AddTransactionModal() {
       return;
     }
 
-    const defaultTitle = type === 'income' ? 'Income Credit' : (merchant || 'Expense');
-    const finalTitle = title.trim() || defaultTitle;
+    const defaultTitle = type === 'income' ? 'Income Credit' : (merchant.trim() || 'Expense');
 
     setIsSubmitted(true);
     try {
       await createTransaction({
-        amount: Math.round(parsedAmount * 100), // convert to paise
+        amount: Math.round(parsedAmount * 100), // convert to integer paise
         type,
         categoryId: selectedCatId,
-        title: finalTitle,
+        title: defaultTitle,
         merchant: merchant.trim() || undefined,
         paymentMethod,
         note: note.trim() || undefined,
@@ -98,53 +108,43 @@ export default function AddTransactionModal() {
     }
   };
 
-  const paymentMethods: PaymentMethod[] = ['UPI', 'Cash', 'Debit Card', 'Credit Card'];
   const filteredCategories = INITIAL_CATEGORIES.filter(c => c.type === type);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => router.back()}
-          style={[styles.closeBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <X size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-
-        <Text style={[typography.title, { color: colors.textPrimary }]}>
-          Record {type === 'expense' ? 'Expense' : 'Income'}
-        </Text>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleSave}
-          disabled={isCreating || isSubmitted}
-          style={[
-            styles.saveBtn,
-            {
-              backgroundColor: colors.accent,
-              borderRadius: radii.pill,
-              opacity: isCreating || isSubmitted ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Check size={18} color={colors.primary} strokeWidth={2.5} />
-          <Text style={[typography.caption, { color: colors.primary, fontWeight: '700', marginLeft: 4 }]}>
-            Save
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 12) }]}>
+      {/* Top Quick Context Bar */}
+      <View style={styles.topBar}>
+        <View style={styles.topLeftGroup}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.back()}
+            style={styles.backBtn}
+          >
+            <ArrowLeft size={22} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <View style={[styles.pulseDot, { backgroundColor: colors.secondaryContainer }]} />
+          <Text style={[typography.subtitle, { color: colors.textSecondary, fontWeight: '500' }]}>
+            Quick Expense Capture
           </Text>
-        </TouchableOpacity>
+        </View>
+
+        <View style={[styles.autoCatBadge, { backgroundColor: colors.surfaceContainerHigh }]}>
+          <BadgeCheck size={14} color={colors.secondary} />
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            Auto-categorized
+          </Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 20 }}>
-        {/* Type Segmented Switcher */}
-        <View
-          style={[
-            styles.segmentedControl,
-            { backgroundColor: colors.cardSubtle, borderColor: colors.border, borderRadius: radii.pill },
-          ]}
-        >
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 24 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Type Switcher Segmented Control */}
+        <View style={[styles.segmentedControl, { backgroundColor: colors.surfaceContainer }]}>
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => {
@@ -152,14 +152,18 @@ export default function AddTransactionModal() {
               setSelectedCatId(INITIAL_CATEGORIES[0].id);
             }}
             style={[
-              styles.segmentTab,
-              type === 'expense' && { backgroundColor: colors.primary, borderRadius: radii.pill },
+              styles.segmentBtn,
+              type === 'expense' && styles.segmentBtnActive,
             ]}
           >
+            <View style={[styles.typeDot, { backgroundColor: colors.danger }]} />
             <Text
               style={[
-                typography.bodySm,
-                { color: type === 'expense' ? colors.textInverse : colors.textSecondary, fontWeight: '700' },
+                typography.subtitle,
+                {
+                  color: type === 'expense' ? colors.textPrimary : colors.textSecondary,
+                  fontWeight: '600',
+                },
               ]}
             >
               Expense
@@ -174,14 +178,18 @@ export default function AddTransactionModal() {
               if (incCat) setSelectedCatId(incCat.id);
             }}
             style={[
-              styles.segmentTab,
-              type === 'income' && { backgroundColor: colors.primary, borderRadius: radii.pill },
+              styles.segmentBtn,
+              type === 'income' && styles.segmentBtnActive,
             ]}
           >
+            <View style={[styles.typeDot, { backgroundColor: colors.secondary }]} />
             <Text
               style={[
-                typography.bodySm,
-                { color: type === 'income' ? colors.textInverse : colors.textSecondary, fontWeight: '700' },
+                typography.subtitle,
+                {
+                  color: type === 'income' ? colors.textPrimary : colors.textSecondary,
+                  fontWeight: '600',
+                },
               ]}
             >
               Income
@@ -189,26 +197,102 @@ export default function AddTransactionModal() {
           </TouchableOpacity>
         </View>
 
-        {/* Hero Amount Display */}
-        <View style={styles.amountDisplay}>
-          <Text style={[typography.display, typography.currency, { color: colors.textPrimary }]}>
-            ₹{amountStr}
+        {/* Primary Amount Input Board */}
+        <View style={[styles.amountBoard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }]}>
+            Enter Amount (INR)
           </Text>
+
+          <View style={styles.amountDisplayRow}>
+            <Text style={[styles.currencySymbol, { color: colors.textSecondary }]}>₹</Text>
+            <Text style={[typography.display, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
+              {amountStr}
+            </Text>
+            <View style={[styles.blinkingCursor, { backgroundColor: colors.secondaryContainer }]} />
+          </View>
+
+          {/* Quick Preset Increment Chips */}
+          <View style={styles.presetsRow}>
+            {[50, 100, 500, 1000].map((amt) => (
+              <TouchableOpacity
+                key={`preset_${amt}`}
+                activeOpacity={0.7}
+                onPress={() => handlePresetAdd(amt)}
+                style={[styles.presetChip, { backgroundColor: colors.surfaceContainerLow }]}
+              >
+                <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '600' }]}>
+                  +₹{amt >= 1000 ? '1,000' : amt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* Tactile Keypad */}
-        <Keypad
-          onKeyPress={handleKeyPress}
-          onBackspace={handleBackspace}
-          onQuickAdd={handleQuickAdd}
-        />
+        {/* Merchant & Note Card */}
+        <View style={[styles.merchantNoteCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {/* Merchant Input */}
+          <View style={[styles.inputRow, { backgroundColor: colors.surfaceContainerLow }]}>
+            <View style={[styles.inputIconCircle, { backgroundColor: colors.primaryContainer }]}>
+              <Store size={18} color={colors.secondaryContainer} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                Paid to / Merchant
+              </Text>
+              <TextInput
+                value={merchant}
+                onChangeText={setMerchant}
+                placeholder="Enter recipient or store"
+                placeholderTextColor={colors.textMuted}
+                style={[typography.subtitle, { color: colors.textPrimary, padding: 0, marginTop: 2 }]}
+              />
+            </View>
+            {merchant.length > 0 && (
+              <TouchableOpacity onPress={() => setMerchant('')} style={styles.clearBtn}>
+                <X size={14} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
 
-        {/* Category Carousel */}
-        <View style={{ marginTop: spacing.lg }}>
-          <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', marginBottom: 8 }]}>
-            Select Category
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {/* Note Input */}
+          <View style={[styles.inputRow, { backgroundColor: colors.surfaceContainerLow }]}>
+            <View style={[styles.inputIconCircle, { backgroundColor: colors.surfaceContainer }]}>
+              <FileText size={18} color={colors.textSecondary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                Note (Optional)
+              </Text>
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                placeholder="e.g. Lunch with team, groceries"
+                placeholderTextColor={colors.textMuted}
+                style={[typography.bodySm, { color: colors.textPrimary, padding: 0, marginTop: 2 }]}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Category Selector Carousel */}
+        <View style={[styles.categoryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.cardHeaderRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={[typography.title, { color: colors.textPrimary, fontWeight: '700' }]}>
+                Category
+              </Text>
+              <View style={[styles.smartTag, { backgroundColor: 'rgba(182, 241, 106, 0.3)' }]}>
+                <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '600' }]}>
+                  Smart Tag
+                </Text>
+              </View>
+            </View>
+            <Text style={[typography.bodySm, { color: colors.secondary, fontWeight: '600' }]}>
+              All
+            </Text>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
             {filteredCategories.map((cat) => {
               const isSelected = selectedCatId === cat.id;
               return (
@@ -219,21 +303,20 @@ export default function AddTransactionModal() {
                   style={[
                     styles.catChip,
                     {
-                      backgroundColor: isSelected ? colors.primary : colors.card,
-                      borderColor: isSelected ? colors.primary : colors.border,
-                      borderRadius: radii.pill,
+                      backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceContainerLow,
+                      borderColor: isSelected ? colors.primaryContainer : colors.border,
                     },
                   ]}
                 >
                   <View style={{ marginRight: 6 }}>
-                    {getCategoryIcon(cat.icon, isSelected ? colors.accent : cat.color, 16)}
+                    {getCategoryIcon(cat.icon, isSelected ? colors.secondaryContainer : cat.color, 16)}
                   </View>
                   <Text
                     style={[
                       typography.caption,
                       {
-                        color: isSelected ? colors.textInverse : colors.textPrimary,
-                        fontWeight: '700',
+                        color: isSelected ? colors.onPrimary : colors.textPrimary,
+                        fontWeight: '600',
                       },
                     ]}
                   >
@@ -245,68 +328,73 @@ export default function AddTransactionModal() {
           </ScrollView>
         </View>
 
-        {/* Merchant / Description Input */}
-        <View style={{ marginTop: spacing.md }}>
-          <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', marginBottom: 6 }]}>
-            Merchant / Description
-          </Text>
-          <TextInput
-            placeholder="e.g. Blue Tokai, Swiggy, Uber"
-            placeholderTextColor={colors.textMuted}
-            value={merchant}
-            onChangeText={setMerchant}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                borderRadius: radii.md,
-                color: colors.textPrimary,
-                fontSize: 15,
-              },
-            ]}
-          />
-        </View>
+        {/* Payment Account Selector */}
+        <View style={[styles.accountCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={[typography.subtitle, { color: colors.textSecondary, fontWeight: '500' }]}>
+              Payment Account
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Zap size={14} color={colors.secondary} />
+              <Text style={[typography.caption, { color: colors.secondary, fontWeight: '600' }]}>
+                Auto-detect
+              </Text>
+            </View>
+          </View>
 
-        {/* Payment Method Selector */}
-        <View style={{ marginTop: spacing.md }}>
-          <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', marginBottom: 6 }]}>
-            Payment Method
-          </Text>
-          <View style={styles.paymentMethodsRow}>
-            {paymentMethods.map((pm) => {
-              const isSelected = paymentMethod === pm;
+          <View style={styles.accountChipsRow}>
+            {[
+              { label: 'UPI', icon: Wallet, value: 'UPI' as PaymentMethod },
+              { label: 'Cash', icon: Banknote, value: 'Cash' as PaymentMethod },
+              { label: 'Card', icon: CreditCard, value: 'Debit Card' as PaymentMethod },
+            ].map((acc) => {
+              const isSelected = paymentMethod === acc.value || (acc.label === 'Card' && (paymentMethod === 'Debit Card' || paymentMethod === 'Credit Card'));
+              const Icon = acc.icon;
               return (
                 <TouchableOpacity
-                  key={pm}
+                  key={acc.label}
                   activeOpacity={0.7}
-                  onPress={() => setPaymentMethod(pm)}
+                  onPress={() => setPaymentMethod(acc.value)}
                   style={[
-                    styles.pmChip,
+                    styles.accountChip,
                     {
-                      backgroundColor: isSelected ? colors.cardSubtle : colors.card,
-                      borderColor: isSelected ? colors.primary : colors.border,
-                      borderWidth: isSelected ? 1.5 : 1,
-                      borderRadius: radii.md,
+                      backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceContainer,
                     },
                   ]}
                 >
+                  <Icon size={16} color={isSelected ? colors.secondaryContainer : colors.textSecondary} />
                   <Text
                     style={[
-                      typography.caption,
+                      typography.subtitle,
                       {
-                        color: isSelected ? colors.primary : colors.textSecondary,
-                        fontWeight: isSelected ? '700' : '500',
+                        color: isSelected ? colors.onPrimary : colors.textPrimary,
+                        fontWeight: '600',
                       },
                     ]}
                   >
-                    {pm}
+                    {acc.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
+
+        {/* Anti-duplicate Protection Alert */}
+        <View style={[styles.alertBanner, { backgroundColor: colors.surfaceContainerHigh }]}>
+          <ShieldCheck size={18} color={colors.secondary} />
+          <Text style={[typography.caption, { color: colors.textPrimary, flex: 1 }]}>
+            <Text style={{ fontWeight: '700' }}>Anti-duplicate active:</Text> Duplicate detection enabled.
+          </Text>
+        </View>
+
+        {/* Tactile Micro-Keypad Tray with Save Button */}
+        <Keypad
+          onKeyPress={handleKeyPress}
+          onBackspace={handleBackspace}
+          onSave={handleSave}
+          isSaving={isCreating || isSubmitted}
+        />
       </ScrollView>
     </View>
   );
@@ -316,62 +404,197 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
-  closeBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  saveBtn: {
+  topLeftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  autoCatBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  scrollContent: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: 12,
   },
   segmentedControl: {
     flexDirection: 'row',
     padding: 4,
-    borderWidth: 1,
-    marginVertical: 12,
+    borderRadius: 9999,
   },
-  segmentTab: {
+  segmentBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    borderRadius: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  segmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  typeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  amountBoard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  amountDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginVertical: 4,
+  },
+  currencySymbol: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  blinkingCursor: {
+    width: 2,
+    height: 28,
+    marginLeft: 4,
+    borderRadius: 1,
+  },
+  presetsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  presetChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+  },
+  merchantNoteCard: {
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 10,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 12,
+    gap: 10,
+  },
+  inputIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  amountDisplay: {
+  clearBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  categoryCard: {
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 10,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  smartTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 9999,
   },
   catChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    borderRadius: 9999,
     borderWidth: 1,
   },
-  input: {
+  accountCard: {
+    padding: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    gap: 10,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  paymentMethodsRow: {
+  accountChipsRow: {
     flexDirection: 'row',
     gap: 8,
   },
-  pmChip: {
-    flex: 1,
+  accountChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9999,
+  },
+  alertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
   },
 });

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
+import { INITIAL_TRANSACTIONS } from '../services/mockData';
 import { Transaction, CreateTransactionPayload } from '../types';
 
 export const useTransactions = (params?: { search?: string; type?: string; categoryId?: string }) => {
@@ -8,6 +9,7 @@ export const useTransactions = (params?: { search?: string; type?: string; categ
   const query = useQuery<Transaction[]>({
     queryKey: ['transactions', params],
     queryFn: () => api.getTransactions(params),
+    initialData: INITIAL_TRANSACTIONS,
   });
 
   const createMutation = useMutation({

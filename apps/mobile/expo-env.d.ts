@@ -1,1 +1,3 @@
-/// <reference types="./src/types/declarations.d.ts" />
+/// <reference types="expo/types" />
+
+// NOTE: This file should not be edited and should be in your git ignore

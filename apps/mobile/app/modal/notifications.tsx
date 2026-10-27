@@ -29,51 +29,47 @@ export default function NotificationsModal() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'BUDGET_WARNING':
-        return <AlertTriangle size={18} color={colors.warning} />;
+        return <AlertTriangle size={18} color={colors.danger} />;
       case 'RECURRING_DUE':
         return <Calendar size={18} color={colors.info} />;
       default:
-        return <Receipt size={18} color={colors.accentDark} />;
+        return <Receipt size={18} color={colors.secondary} />;
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 16) }]}>
+      {/* Header matching index.html */}
+      <View style={[styles.header, { borderBottomColor: colors.surfaceContainer }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Bell size={20} color={colors.textPrimary} />
-          <Text style={[typography.title, { color: colors.textPrimary }]}>Notifications</Text>
+          <Text style={[typography.title, { color: colors.textPrimary, fontWeight: '700' }]}>
+            Notifications
+          </Text>
+          <View style={[styles.updatesBadge, { backgroundColor: colors.secondaryContainer }]}>
+            <Text style={[typography.caption, { color: colors.secondary, fontWeight: '700' }]}>
+              Updates
+            </Text>
+          </View>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => router.back()}
-          style={[styles.closeBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <X size={18} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Subheader action */}
-      <View style={[styles.actionRow, { paddingHorizontal: spacing.lg, marginBottom: spacing.sm }]}>
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>
-          {notifications.filter((n) => !n.readAt).length} Unread Notifications
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleMarkAllRead}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-        >
-          <CheckCheck size={14} color={colors.accentDark} />
-          <Text style={[typography.caption, { color: colors.accentDark, fontWeight: '700' }]}>
-            Mark all read
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity activeOpacity={0.7} onPress={handleMarkAllRead}>
+            <Text style={[typography.caption, { color: colors.secondary, fontWeight: '700' }]}>
+              Mark all read
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.back()}
+            style={[styles.closeBtn, { backgroundColor: colors.surfaceContainer }]}
+          >
+            <X size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 20, gap: 10 }}
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 20, gap: 10 }}
         showsVerticalScrollIndicator={false}
       >
         {notifications.map((item) => {
@@ -85,33 +81,29 @@ export default function NotificationsModal() {
                 styles.notifCard,
                 {
                   backgroundColor: colors.card,
-                  borderColor: isUnread ? colors.primary : colors.border,
+                  borderColor: isUnread ? colors.secondaryContainer : colors.border,
                   borderWidth: isUnread ? 1.5 : 1,
-                  borderRadius: radii.lg,
-                  padding: spacing.md,
                 },
               ]}
             >
               <View style={styles.cardHeader}>
-                <View style={styles.iconTitleRow}>
-                  <View style={[styles.iconWrap, { backgroundColor: colors.cardSubtle, borderRadius: radii.md }]}>
-                    {getNotificationIcon(item.type)}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
-                      {item.title}
-                    </Text>
-                    <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 1 }]}>
-                      {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
+                <View style={[styles.iconWrap, { backgroundColor: colors.surfaceContainer }]}>
+                  {getNotificationIcon(item.type)}
                 </View>
-
-                {isUnread && <View style={[styles.unreadDot, { backgroundColor: colors.accent }]} />}
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.subtitle, { color: colors.textPrimary, fontWeight: isUnread ? '700' : '600' }]}>
+                    {item.title}
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.textMuted, marginTop: 2 }]}>
+                    {item.createdAt}
+                  </Text>
+                </View>
+                {isUnread && (
+                  <View style={[styles.unreadDot, { backgroundColor: colors.secondaryContainer }]} />
+                )}
               </View>
-
               <Text style={[typography.bodySm, { color: colors.textSecondary, marginTop: 8, lineHeight: 18 }]}>
-                {item.message}
+                {item.message || (item as any).body}
               </Text>
             </View>
           );
@@ -129,35 +121,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  updatesBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 9999,
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  notifCard: {
+    borderRadius: 16,
+    padding: 14,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  notifCard: {},
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  iconTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
+    gap: 12,
   },
   iconWrap: {
     width: 36,
     height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -165,6 +162,5 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginLeft: 8,
   },
 });

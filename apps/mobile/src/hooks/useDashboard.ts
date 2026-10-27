@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
+import { INITIAL_DASHBOARD } from '../services/mockData';
 import { DashboardData } from '../types';
 
 export const useDashboard = () => {
@@ -8,6 +9,7 @@ export const useDashboard = () => {
   const query = useQuery<DashboardData>({
     queryKey: ['dashboard'],
     queryFn: () => api.getDashboard(),
+    initialData: INITIAL_DASHBOARD,
     staleTime: 30000, // 30 seconds
   });
 

@@ -1,41 +1,45 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PlusCircle, QrCode, Sparkles, LineChart } from 'lucide-react-native';
+import { Plus, QrCode, LineChart, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme/ThemeContext';
 
 export const QuickActions: React.FC = () => {
   const router = useRouter();
-  const { colors, spacing, radii, typography } = useTheme();
+  const { colors, typography } = useTheme();
 
   const actions = [
     {
       title: 'Add Expense',
-      icon: PlusCircle,
+      icon: Plus,
       onPress: () => router.push('/modal/add-transaction'),
-      bg: colors.accent,
-      iconColor: colors.primary,
+      iconBg: colors.secondaryContainer,
+      iconColor: colors.secondary,
+      strokeWidth: 2.5,
     },
     {
       title: 'Scan UPI',
       icon: QrCode,
       onPress: () => router.push('/modal/scan-upi'),
-      bg: colors.card,
+      iconBg: colors.surfaceContainer,
       iconColor: colors.textPrimary,
-    },
-    {
-      title: 'Smart AI',
-      icon: Sparkles,
-      onPress: () => router.push('/modal/ai-assistant'),
-      bg: colors.card,
-      iconColor: '#8B5CF6',
+      strokeWidth: 2,
     },
     {
       title: 'Insights',
       icon: LineChart,
       onPress: () => router.push('/(tabs)/insights'),
-      bg: colors.card,
+      iconBg: colors.surfaceContainer,
       iconColor: colors.textPrimary,
+      strokeWidth: 2,
+    },
+    {
+      title: 'Smart AI',
+      icon: Sparkles,
+      onPress: () => router.push('/modal/ai-assistant'),
+      iconBg: colors.surfaceContainer,
+      iconColor: colors.textPrimary,
+      strokeWidth: 2,
     },
   ];
 
@@ -46,31 +50,30 @@ export const QuickActions: React.FC = () => {
         return (
           <TouchableOpacity
             key={act.title}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             onPress={act.onPress}
             style={[
-              styles.actionItem,
+              styles.card,
               {
-                backgroundColor: act.bg,
-                borderRadius: radii.xl,
+                backgroundColor: colors.card,
                 borderColor: colors.border,
-                borderWidth: act.bg === colors.card ? 1 : 0,
-                padding: spacing.md,
               },
             ]}
           >
-            <View style={styles.iconCircle}>
-              <Icon size={20} color={act.iconColor} />
+            <View style={[styles.iconCircle, { backgroundColor: act.iconBg }]}>
+              <Icon size={20} color={act.iconColor} strokeWidth={act.strokeWidth} />
             </View>
             <Text
               style={[
                 typography.caption,
                 {
-                  color: act.bg === colors.accent ? colors.primary : colors.textPrimary,
-                  fontWeight: '700',
-                  marginTop: 4,
+                  color: colors.textPrimary,
+                  fontWeight: '600',
+                  marginTop: 6,
+                  textAlign: 'center',
                 },
               ]}
+              numberOfLines={1}
             >
               {act.title}
             </Text>
@@ -86,15 +89,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    gap: 8,
+    gap: 10,
   },
-  actionItem: {
+  card: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 70,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

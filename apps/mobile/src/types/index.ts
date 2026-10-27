@@ -38,6 +38,7 @@ export interface Transaction {
   paymentMethod: PaymentMethod;
   isRecurring?: boolean;
   createdAt?: string;
+  formattedDate?: string;
 }
 
 export interface MonthlyBudget {
@@ -46,6 +47,7 @@ export interface MonthlyBudget {
   amountLimitFormatted: string;// "₹45,000.00"
   totalSpent: number;          // In paise
   totalSpentFormatted: string; // "₹28,450.00"
+  amountSpentFormatted?: string;
   remainingSafe: number;       // In paise
   remainingSafeFormatted: string; // "₹16,550.00"
   percentageUsed: number;      // e.g. 63
@@ -115,6 +117,7 @@ export interface NotificationItem {
   type: string;
   title: string;
   message: string;
+  body?: string;
   readAt?: string | null;
   createdAt: string;
 }

@@ -1,19 +1,23 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Delete } from 'lucide-react-native';
+import { Delete, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
-import { MinTouchTarget } from '../../theme/tokens';
 
 interface KeypadProps {
   onKeyPress: (key: string) => void;
   onBackspace: () => void;
-  onQuickAdd: (amount: number) => void;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
-export const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, onQuickAdd }) => {
+export const Keypad: React.FC<KeypadProps> = ({
+  onKeyPress,
+  onBackspace,
+  onSave,
+  isSaving = false,
+}) => {
   const { colors, spacing, radii, typography } = useTheme();
 
-  const presets = [50, 100, 500, 1000];
   const keys = [
     ['1', '2', '3'],
     ['4', '5', '6'],
@@ -22,56 +26,43 @@ export const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, onQuick
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Quick Increment Preset Chips */}
-      <View style={[styles.presetsRow, { marginBottom: spacing.md }]}>
-        {presets.map((amt) => (
-          <TouchableOpacity
-            key={`preset_${amt}`}
-            activeOpacity={0.7}
-            onPress={() => onQuickAdd(amt)}
-            style={[
-              styles.presetChip,
-              {
-                backgroundColor: colors.cardSubtle,
-                borderColor: colors.border,
-                borderRadius: radii.pill,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.xs,
-              },
-            ]}
-          >
-            <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '700' }]}>
-              +₹{amt}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
+    <View
+      style={[
+        styles.tray,
+        {
+          backgroundColor: colors.surfaceContainer,
+          borderRadius: 20,
+          padding: 10,
+        },
+      ]}
+    >
       {/* 4x3 Numeric Keypad Grid */}
       <View style={styles.grid}>
         {keys.map((row, rowIndex) => (
-          <View key={`row_${rowIndex}`} style={[styles.row, { marginBottom: spacing.sm }]}>
+          <View key={`row_${rowIndex}`} style={styles.row}>
             {row.map((k) => {
               const isBackspace = k === 'backspace';
               return (
                 <TouchableOpacity
                   key={`key_${k}`}
-                  activeOpacity={0.6}
+                  activeOpacity={0.65}
                   onPress={() => (isBackspace ? onBackspace() : onKeyPress(k))}
                   style={[
                     styles.key,
                     {
                       backgroundColor: colors.card,
-                      borderColor: colors.border,
-                      borderRadius: radii.lg,
                     },
                   ]}
                 >
                   {isBackspace ? (
-                    <Delete size={22} color={colors.textPrimary} />
+                    <Delete size={20} color={colors.textPrimary} />
                   ) : (
-                    <Text style={[typography.headline, { color: colors.textPrimary }]}>
+                    <Text
+                      style={[
+                        typography.headline,
+                        { color: colors.textPrimary, fontWeight: '600' },
+                      ]}
+                    >
                       {k}
                     </Text>
                   )}
@@ -81,40 +72,77 @@ export const Keypad: React.FC<KeypadProps> = ({ onKeyPress, onBackspace, onQuick
           </View>
         ))}
       </View>
+
+      {/* Primary Action Save Button */}
+      {onSave && (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onSave}
+          disabled={isSaving}
+          style={[
+            styles.saveBtn,
+            {
+              backgroundColor: colors.secondaryContainer,
+              opacity: isSaving ? 0.6 : 1,
+            },
+          ]}
+        >
+          <CheckCircle2 size={22} color={colors.primary} />
+          <Text
+            style={[
+              typography.headline,
+              { color: colors.primary, fontWeight: '700', marginLeft: 8 },
+            ]}
+          >
+            {isSaving ? 'Saving...' : 'Save Transaction'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  tray: {
     width: '100%',
-  },
-  presetsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 8,
-  },
-  presetChip: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    minHeight: 36,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   grid: {
-    width: '100%',
+    gap: 6,
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 6,
   },
   key: {
     flex: 1,
-    height: 56,
-    minHeight: MinTouchTarget,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  saveBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    shadowColor: '#446E00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });

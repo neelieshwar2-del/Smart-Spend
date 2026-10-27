@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Receipt,
   ChevronRight,
+  ArrowRight,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme/ThemeContext';
@@ -24,22 +25,38 @@ interface RecentTransactionsProps {
 export const getCategoryIcon = (iconName: string, color: string, size = 18) => {
   switch (iconName?.toLowerCase()) {
     case 'utensils':
+    case 'restaurant':
+    case 'food':
       return <Utensils size={size} color={color} />;
     case 'car':
+    case 'directions_car':
+    case 'transport':
       return <Car size={size} color={color} />;
     case 'shopping-cart':
+    case 'shopping_cart':
+    case 'groceries':
       return <ShoppingCart size={size} color={color} />;
     case 'shopping-bag':
+    case 'shopping_bag':
       return <ShoppingBag size={size} color={color} />;
     case 'zap':
+    case 'bolt':
+    case 'utilities':
       return <Zap size={size} color={color} />;
     case 'film':
+    case 'movie':
+    case 'entertainment':
       return <Film size={size} color={color} />;
     case 'heart':
+    case 'health':
+    case 'medical':
       return <Heart size={size} color={color} />;
     case 'briefcase':
+    case 'work':
+    case 'salary':
       return <Briefcase size={size} color={color} />;
     case 'trending-up':
+    case 'investment':
       return <TrendingUp size={size} color={color} />;
     default:
       return <Receipt size={size} color={color} />;
@@ -54,22 +71,22 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[typography.headline, { color: colors.textPrimary }]}>
-          Recent Activity
+        <Text style={[typography.title, { color: colors.textPrimary, fontWeight: '700' }]}>
+          Recent Transactions
         </Text>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => router.push('/(tabs)/activity')}
-          style={{ flexDirection: 'row', alignItems: 'center' }}
+          style={styles.viewAllLink}
         >
-          <Text style={[typography.bodySm, { color: colors.textSecondary, fontWeight: '600' }]}>
-            View All
+          <Text style={[typography.subtitle, { color: colors.secondary, fontWeight: '600' }]}>
+            View all
           </Text>
-          <ChevronRight size={16} color={colors.textSecondary} />
+          <ChevronRight size={16} color={colors.secondary} />
         </TouchableOpacity>
       </View>
 
-      {/* List */}
+      {/* List Card */}
       <View
         style={[
           styles.listCard,
@@ -90,7 +107,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
           transactions.slice(0, 5).map((txn, index) => {
             const isIncome = txn.type === 'income';
             const isLast = index === Math.min(transactions.length, 5) - 1;
-            const iconColor = txn.categoryColor || (isIncome ? colors.success : colors.danger);
+            const iconColor = txn.categoryColor || (isIncome ? colors.secondary : colors.textPrimary);
 
             return (
               <TouchableOpacity
@@ -98,74 +115,59 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
                 activeOpacity={0.7}
                 onPress={() => router.push(`/modal/transaction-detail?id=${txn.id}`)}
                 style={[
-                  styles.txnItem,
-                  {
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.md,
-                    borderBottomWidth: isLast ? 0 : 1,
-                    borderBottomColor: colors.border,
-                  },
+                  styles.txnRow,
+                  { padding: spacing.md },
+                  !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border },
                 ]}
               >
-                {/* Category Icon */}
-                <View
-                  style={[
-                    styles.iconBox,
-                    {
-                      backgroundColor: `${iconColor}1A`,
-                      borderRadius: radii.md,
-                    },
-                  ]}
-                >
-                  {getCategoryIcon(txn.categoryIcon || 'receipt', iconColor)}
+                <View style={[styles.iconBox, { backgroundColor: colors.surfaceContainer }]}>
+                  {getCategoryIcon(txn.categoryIcon || 'receipt', iconColor, 18)}
                 </View>
 
-                {/* Details */}
-                <View style={styles.infoCol}>
-                  <Text
-                    style={[
-                      typography.body,
-                      { color: colors.textPrimary, fontWeight: '600' },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {txn.title}
+                <View style={styles.txnDetails}>
+                  <Text style={[typography.subtitle, { color: colors.textPrimary, fontWeight: '600' }]} numberOfLines={1}>
+                    {txn.merchant || txn.title}
                   </Text>
-                  <View style={styles.metaRow}>
-                    <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                      {txn.categoryName || 'General'}
-                    </Text>
-                    <Text style={[typography.caption, { color: colors.textMuted }]}> • </Text>
-                    <Text
-                      style={[
-                        typography.caption,
-                        { color: txn.paymentMethod === 'UPI' ? colors.upi : colors.textSecondary },
-                      ]}
-                    >
-                      {txn.paymentMethod}
-                    </Text>
-                  </View>
+                  <Text style={[typography.bodySm, { color: colors.textSecondary, marginTop: 2 }]} numberOfLines={1}>
+                    {txn.categoryName} • {txn.formattedDate || 'Today'}
+                  </Text>
                 </View>
 
-                {/* Amount */}
-                <View style={{ alignItems: 'flex-end' }}>
+                <View style={styles.amountBox}>
                   <Text
                     style={[
-                      typography.body,
+                      typography.subtitle,
                       typography.currency,
                       {
-                        color: isIncome ? colors.success : colors.textPrimary,
+                        color: isIncome ? colors.secondary : colors.textPrimary,
                         fontWeight: '700',
                       },
                     ]}
                   >
                     {isIncome ? `+${txn.amountFormatted}` : `-${txn.amountFormatted}`}
                   </Text>
+                  <Text style={[typography.caption, { color: colors.textMuted, marginTop: 2 }]}>
+                    {txn.paymentMethod || 'UPI'}
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
           })
         )}
+      </View>
+
+      {/* Bottom Quick Activity Pill Button */}
+      <View style={styles.bottomLinkContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.push('/(tabs)/activity')}
+          style={[styles.bottomActivityBtn, { backgroundColor: colors.surfaceContainer }]}
+        >
+          <Text style={[typography.subtitle, { color: colors.textPrimary, fontWeight: '600' }]}>
+            View all activity
+          </Text>
+          <ArrowRight size={16} color={colors.textPrimary} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -174,36 +176,58 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+  },
+  viewAllLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   listCard: {
     width: '100%',
     borderWidth: 1,
     overflow: 'hidden',
+    shadowColor: '#172033',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  txnItem: {
+  txnRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconBox: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
-  infoCol: {
+  txnDetails: {
     flex: 1,
-    marginRight: 8,
+    marginLeft: 12,
   },
-  metaRow: {
+  amountBox: {
+    alignItems: 'flex-end',
+    marginLeft: 8,
+  },
+  bottomLinkContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  bottomActivityBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 9999,
   },
 });

@@ -92,6 +92,7 @@ declare module 'react-native' {
   export const TouchableOpacity: any;
   export const TextInput: any;
   export const ScrollView: any;
+  export type ScrollView = any;
   export const FlatList: any;
   export const StyleSheet: {
     create: <T extends Record<string, any>>(styles: T) => T;
@@ -203,6 +204,19 @@ declare module 'lucide-react-native' {
   export const Globe: any;
   export const Download: any;
   export const LineChart: any;
+  export const Volume2: any;
+  export const Edit3: any;
+  export const Store: any;
+  export const Banknote: any;
+  export const BadgeCheck: any;
+  export const ScanLine: any;
+  export const Flashlight: any;
+  export const Book: any;
+  export const Laptop: any;
+  export const Inbox: any;
+  export const ArrowDown: any;
+  export const ArrowRight: any;
+  export const Image: any;
   const icons: Record<string, any>;
   export default icons;
 }
@@ -257,8 +271,8 @@ declare module '@react-native-async-storage/async-storage' {
 }
 
 declare module '@tanstack/react-query' {
-  export const useQuery: any;
-  export const useMutation: any;
+  export const useQuery: <T = any, E = any>(...args: any[]) => any;
+  export const useMutation: <T = any, E = any>(...args: any[]) => any;
   export const useQueryClient: any;
   export const QueryClient: any;
   export const QueryClientProvider: any;

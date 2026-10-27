@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Send, Sparkles, Bot, User } from 'lucide-react-native';
+import { X, Send, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { api } from '../../src/services/api';
@@ -21,7 +21,7 @@ export default function AiAssistantModal() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, spacing, radii, typography } = useTheme();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<any>(null);
 
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -29,17 +29,16 @@ export default function AiAssistantModal() {
     {
       id: 'welcome_1',
       sender: 'assistant',
-      text: 'Hello Rohan! I am SmartSpend AI, your personal financial copilot. I analyze your live ledger to give you factual, grounded insights. How can I help you today?',
+      text: "Hello! I'm your SmartSpend AI assistant. Ask me anything about your current budget, category pacing, or upcoming subscriptions!",
       timestamp: 'Just now',
       model: 'smartspend-fintech-engine',
     },
   ]);
 
   const suggestions = [
-    'Can I afford dinner tonight? 🍽️',
-    'Where did most of my money go this month? 📊',
-    'What is my remaining safe budget? 🎯',
-    'How much can I save by cutting dining out? 💡',
+    '🍽️ Can I afford dinner tonight?',
+    '📊 Top spend category?',
+    '💡 How to save ₹5,000?',
   ];
 
   const handleSend = async (textToSend?: string) => {
@@ -72,7 +71,7 @@ export default function AiAssistantModal() {
         metrics: res.metrics,
       };
       setMessages((prev: AiChatMessage[]) => [...prev, assistantMsg]);
-    } catch (e: any) {
+    } catch {
       const errorMsg: AiChatMessage = {
         id: `err_${Date.now()}`,
         sender: 'assistant',
@@ -91,7 +90,7 @@ export default function AiAssistantModal() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}
+      style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 16) }]}
     >
       {/* Header */}
       <View
@@ -101,18 +100,20 @@ export default function AiAssistantModal() {
             paddingHorizontal: spacing.lg,
             paddingVertical: spacing.md,
             borderBottomWidth: 1,
-            borderBottomColor: colors.border,
+            borderBottomColor: colors.surfaceContainer,
           },
         ]}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={[styles.aiIcon, { backgroundColor: colors.accent }]}>
-            <Sparkles size={18} color={colors.primary} />
+          <View style={[styles.aiIcon, { backgroundColor: colors.secondaryContainer }]}>
+            <Sparkles size={18} color={colors.secondary} />
           </View>
           <View>
-            <Text style={[typography.title, { color: colors.textPrimary }]}>SmartSpend Copilot</Text>
-            <Text style={[typography.caption, { color: colors.success, fontWeight: '600' }]}>
-              ● Grounded in live ledger
+            <Text style={[typography.title, { color: colors.textPrimary, fontWeight: '700' }]}>
+              SmartSpend AI
+            </Text>
+            <Text style={[typography.caption, { color: colors.secondary, fontWeight: '600' }]}>
+              Your Financial Copilot
             </Text>
           </View>
         </View>
@@ -120,14 +121,14 @@ export default function AiAssistantModal() {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => router.back()}
-          style={[styles.closeBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[styles.closeBtn, { backgroundColor: colors.surfaceContainer }]}
         >
           <X size={18} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
-      {/* Suggested Chips */}
-      <View style={{ paddingVertical: spacing.xs, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+      {/* Suggested Prompt Chips */}
+      <View style={[styles.suggestionsBar, { borderBottomColor: colors.surfaceContainer, backgroundColor: colors.surfaceContainerLow }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: 8 }}>
           {suggestions.map((s) => (
             <TouchableOpacity
@@ -136,7 +137,7 @@ export default function AiAssistantModal() {
               onPress={() => handleSend(s)}
               style={[
                 styles.sugChip,
-                { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radii.pill },
+                { backgroundColor: colors.card, borderColor: colors.border },
               ]}
             >
               <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '600' }]}>{s}</Text>
@@ -148,7 +149,7 @@ export default function AiAssistantModal() {
       {/* Chat Messages */}
       <ScrollView
         ref={scrollViewRef}
-        contentContainerStyle={{ padding: spacing.lg, gap: 14 }}
+        contentContainerStyle={{ padding: spacing.lg, gap: 12 }}
         showsVerticalScrollIndicator={false}
       >
         {messages.map((msg) => {
@@ -162,8 +163,8 @@ export default function AiAssistantModal() {
               ]}
             >
               {!isUser && (
-                <View style={[styles.msgAvatar, { backgroundColor: colors.cardSubtle, marginRight: 8 }]}>
-                  <Bot size={16} color={colors.textPrimary} />
+                <View style={[styles.msgAvatar, { backgroundColor: colors.secondaryContainer, marginRight: 8 }]}>
+                  <Sparkles size={14} color={colors.secondary} />
                 </View>
               )}
 
@@ -172,11 +173,9 @@ export default function AiAssistantModal() {
                   styles.bubble,
                   {
                     maxWidth: '82%',
-                    padding: spacing.md,
-                    borderRadius: radii.xl,
-                    backgroundColor: isUser ? colors.primary : colors.card,
-                    borderColor: colors.border,
-                    borderWidth: isUser ? 0 : 1,
+                    padding: 12,
+                    borderRadius: 18,
+                    backgroundColor: isUser ? colors.primary : colors.surfaceContainer,
                   },
                 ]}
               >
@@ -191,86 +190,61 @@ export default function AiAssistantModal() {
                 >
                   {msg.text}
                 </Text>
-
-                {msg.metrics && (
-                  <View style={[styles.metricsBox, { backgroundColor: colors.cardSubtle, borderRadius: radii.md, marginTop: 8 }]}>
-                    {msg.metrics.remainingBudget && (
-                      <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                        Remaining: <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>{msg.metrics.remainingBudget}</Text>
-                      </Text>
-                    )}
-                    {msg.metrics.topCategory && (
-                      <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                        Top Category: <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>{msg.metrics.topCategory}</Text>
-                      </Text>
-                    )}
-                  </View>
-                )}
               </View>
-
-              {isUser && (
-                <View style={[styles.msgAvatar, { backgroundColor: colors.accent, marginLeft: 8 }]}>
-                  <User size={16} color={colors.primary} />
-                </View>
-              )}
             </View>
           );
         })}
 
         {isTyping && (
-          <View style={[styles.messageRow, { justifyContent: 'flex-start' }]}>
-            <View style={[styles.msgAvatar, { backgroundColor: colors.cardSubtle, marginRight: 8 }]}>
-              <Bot size={16} color={colors.textPrimary} />
+          <View style={[styles.messageRow, { justifyContent: 'flex-start', alignItems: 'center' }]}>
+            <View style={[styles.msgAvatar, { backgroundColor: colors.secondaryContainer, marginRight: 8 }]}>
+              <Sparkles size={14} color={colors.secondary} />
             </View>
-            <View style={[styles.bubble, { padding: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg }]}>
-              <ActivityIndicator size="small" color={colors.primary} />
+            <View style={[styles.bubble, { padding: 12, borderRadius: 18, backgroundColor: colors.surfaceContainer }]}>
+              <ActivityIndicator size="small" color={colors.secondary} />
             </View>
           </View>
         )}
       </ScrollView>
 
-      {/* Input Bar */}
+      {/* Input Form Bar */}
       <View
         style={[
-          styles.inputBar,
+          styles.inputContainer,
           {
-            backgroundColor: colors.card,
-            borderTopColor: colors.border,
-            paddingBottom: insets.bottom + 8,
-            paddingTop: 8,
+            paddingBottom: Math.max(insets.bottom, 12),
+            paddingTop: 10,
             paddingHorizontal: spacing.lg,
+            borderTopWidth: 1,
+            borderTopColor: colors.surfaceContainer,
+            backgroundColor: colors.card,
           },
         ]}
       >
         <TextInput
-          placeholder="Ask a question about your spending..."
+          placeholder="Ask AI finance question..."
           placeholderTextColor={colors.textMuted}
           value={inputMessage}
           onChangeText={setInputMessage}
           onSubmitEditing={() => handleSend()}
           style={[
-            styles.textInput,
-            {
-              backgroundColor: colors.cardSubtle,
-              borderColor: colors.border,
-              borderRadius: radii.pill,
-              color: colors.textPrimary,
-            },
+            typography.bodySm,
+            styles.chatInput,
+            { backgroundColor: colors.surfaceContainer, color: colors.textPrimary },
           ]}
         />
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => handleSend()}
-          disabled={!inputMessage.trim()}
           style={[
             styles.sendBtn,
             {
-              backgroundColor: inputMessage.trim() ? colors.accent : colors.cardSubtle,
-              borderRadius: radii.pill,
+              backgroundColor: colors.primary,
+              opacity: inputMessage.trim().length > 0 ? 1 : 0.5,
             },
           ]}
         >
-          <Send size={18} color={inputMessage.trim() ? colors.primary : colors.textMuted} />
+          <Send size={16} color={colors.textInverse} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -294,21 +268,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+  },
+  suggestionsBar: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
   },
   sugChip: {
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 6,
+    borderRadius: 9999,
     borderWidth: 1,
   },
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   msgAvatar: {
     width: 28,
@@ -316,35 +294,30 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 2,
   },
   bubble: {
-    shadowColor: '#000',
+    shadowColor: '#172033',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 1,
   },
-  metricsBox: {
-    padding: 8,
-    marginTop: 6,
-    gap: 2,
-  },
-  inputBar: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
     gap: 8,
   },
-  textInput: {
+  chatInput: {
     flex: 1,
+    height: 44,
+    borderRadius: 9999,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
-    fontSize: 14,
   },
   sendBtn: {
     width: 44,
     height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
