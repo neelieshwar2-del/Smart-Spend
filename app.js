@@ -58,7 +58,7 @@ class ApiClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: 'rohan.sharma@fintech.io',
+          email: 'user@smartspend.app',
           password: 'Password123',
         }),
       });
@@ -82,8 +82,8 @@ class ApiClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'Rohan Sharma',
-          email: 'rohan.sharma@fintech.io',
+          name: 'SmartSpend User',
+          email: 'user@smartspend.app',
           password: 'Password123',
         }),
       });
@@ -230,13 +230,13 @@ class SmartSpendApp {
     // Keypad and Form State
     this.addForm = {
       type: 'expense',
-      amount: '450.00',
-      merchant: 'Blue Tokai Coffee Roasters',
-      note: 'Afternoon coffee with client',
+      amount: '0',
+      merchant: '',
+      note: '',
       categoryId: '',
-      categoryName: 'Food & Dining',
-      categoryIcon: 'restaurant',
-      account: 'UPI (GPay / HDFC)',
+      categoryName: '',
+      categoryIcon: '',
+      account: 'UPI',
     };
 
     this.audioCtx = null;
@@ -416,6 +416,8 @@ class SmartSpendApp {
       this.renderActivityView();
     } else if (tabId === 'home') {
       this.renderHomeView();
+    } else if (tabId === 'add-expense') {
+      this.updateAddExpenseDateTime();
     }
   }
 
@@ -442,8 +444,35 @@ class SmartSpendApp {
 
   // --- Render Home Screen (Live Real-Time Data) ---
   renderHomeView() {
+    // Dynamic days remaining & date label
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysLeft = Math.max(0, lastDay - now.getDate());
+    const monthName = now.toLocaleDateString('en-US', { month: 'short' });
+    const daysRemainingEl = document.getElementById('home-days-remaining');
+    if (daysRemainingEl) {
+      daysRemainingEl.textContent = `${daysLeft} days remaining in ${monthName}`;
+    }
+
+    const dateLabelEl = document.getElementById('home-date-label');
+    if (dateLabelEl) {
+      dateLabelEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
     const d = this.liveData.dashboard;
-    if (!d) return;
+    if (!d) {
+      const listEl = document.getElementById('home-recent-txns-list');
+      if (listEl && (!this.liveData.transactions || this.liveData.transactions.length === 0)) {
+        listEl.innerHTML = `
+          <div class="p-6 text-center text-on-surface-variant font-body-sm flex flex-col items-center gap-1">
+            <span class="material-symbols-outlined text-[28px]">receipt_long</span>
+            <span>No transactions recorded yet</span>
+            <button onclick="app.switchTab('add-expense')" class="mt-2 px-3 py-1 bg-primary text-on-primary rounded-full text-xs font-semibold">Record your first expense</button>
+          </div>
+        `;
+      }
+      return;
+    }
 
     // 1. Monthly Spend Limit Card
     const balanceDisplay = document.getElementById('home-safe-balance');
@@ -480,7 +509,7 @@ class SmartSpendApp {
 
     // 3. Dynamic Smart Tip from AI/Analytics
     const tipText = document.getElementById('home-smart-tip-text');
-    if (tipText) {
+    if (tipText && d.smartTip) {
       tipText.innerHTML = d.smartTip;
     }
 
@@ -550,6 +579,12 @@ class SmartSpendApp {
 
     const monthlyLimit = this.liveData.dashboard?.monthlyBudget?.amountLimitRupees || 45000;
     const percentSpent = Math.min(100, Math.round((totalSpent / monthlyLimit) * 100));
+
+    // Dynamic month label
+    const monthLabelEl = document.getElementById('activity-month-label');
+    if (monthLabelEl) {
+      monthLabelEl.textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
 
     // Snapshot card numbers
     const totalSpentEl = document.getElementById('activity-total-spent');
@@ -706,15 +741,23 @@ class SmartSpendApp {
     const topCatSpendEl = document.getElementById('insights-top-cat-spend');
     const safeDailyEl = document.getElementById('insights-safe-daily');
     const safeDaysLeftEl = document.getElementById('insights-safe-days-left');
+    const smartTipEl = document.getElementById('insights-smart-tip');
+    const chartLimitBadge = document.getElementById('insights-daily-limit-badge');
 
     const b = d.monthlyBudget;
     if (totalSpentEl) totalSpentEl.textContent = b.totalSpentFormatted;
     if (dailyAvgEl) dailyAvgEl.textContent = d.todaySpending.todaySpentFormatted;
+    if (smartTipEl && d.smartTip) smartTipEl.innerHTML = d.smartTip;
+    if (chartLimitBadge && d.todaySpending?.dailyTargetFormatted) {
+      chartLimitBadge.textContent = `Limit: ${d.todaySpending.dailyTargetFormatted}`;
+    }
 
-    const topCat = d.topCategories[0];
-    if (topCatNameEl) topCatNameEl.textContent = topCat?.name || 'Food & Dining';
+    const topCat = (d.topCategories && d.topCategories.length > 0) ? d.topCategories[0] : null;
+    if (topCatNameEl) topCatNameEl.textContent = topCat?.name || 'None';
     if (topCatSpendEl) {
-      topCatSpendEl.innerHTML = `${topCat?.amountFormatted || '₹0'} <span class="font-semibold text-primary">(${topCat?.percentage || 0}%)</span>`;
+      topCatSpendEl.innerHTML = topCat
+        ? `${topCat.amountFormatted || '₹0'} <span class="font-semibold text-primary">(${topCat.percentage || 0}%)</span>`
+        : '₹0 <span class="font-semibold text-primary">(0%)</span>';
     }
 
     if (safeDailyEl) safeDailyEl.innerHTML = `${b.dailyAllowanceFormatted} <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ day</span>`;
@@ -722,35 +765,47 @@ class SmartSpendApp {
 
     // Multi-segmented category meter from live data
     const meterEl = document.getElementById('insights-segmented-meter');
-    if (meterEl && d.topCategories.length > 0) {
-      const colors = ['bg-primary', 'bg-secondary-container', 'bg-surface-tint', 'bg-secondary-fixed-dim', 'bg-outline-variant'];
-      meterEl.innerHTML = d.topCategories.map((c, i) => {
-        const col = colors[i % colors.length];
-        const roundedClass = i === 0 ? 'rounded-l-full' : (i === d.topCategories.length - 1 ? 'rounded-r-full' : '');
-        return `<div class="h-full ${col} ${roundedClass} transition-all duration-500" style="width: ${Math.max(6, c.percentage)}%;" title="${c.name}: ${c.percentage}%"></div>`;
-      }).join('');
+    if (meterEl) {
+      if (d.topCategories && d.topCategories.length > 0) {
+        const colors = ['bg-primary', 'bg-secondary-container', 'bg-surface-tint', 'bg-secondary-fixed-dim', 'bg-outline-variant'];
+        meterEl.innerHTML = d.topCategories.map((c, i) => {
+          const col = colors[i % colors.length];
+          const roundedClass = i === 0 ? 'rounded-l-full' : (i === d.topCategories.length - 1 ? 'rounded-r-full' : '');
+          return `<div class="h-full ${col} ${roundedClass} transition-all duration-500" style="width: ${Math.max(6, c.percentage)}%;" title="${c.name}: ${c.percentage}%"></div>`;
+        }).join('');
+      } else {
+        meterEl.innerHTML = '<div class="h-full w-full bg-surface-container rounded-full"></div>';
+      }
     }
 
     // Category list rows from live database
     const catListEl = document.getElementById('insights-category-list');
     if (catListEl) {
-      catListEl.innerHTML = d.topCategories.map(c => `
-        <div class="flex items-center justify-between py-1.5">
-          <div class="flex items-center gap-space-sm">
-            <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-[18px]">${c.icon || 'receipt'}</span>
+      if (d.topCategories && d.topCategories.length > 0) {
+        catListEl.innerHTML = d.topCategories.map(c => `
+          <div class="flex items-center justify-between py-1.5">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">${c.icon || 'receipt'}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-lg text-label-lg text-primary font-medium">${this.escapeHTML(c.name)}</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">${c.percentage}% of overall spend</span>
+              </div>
             </div>
-            <div class="flex flex-col">
-              <span class="font-label-lg text-label-lg text-primary font-medium">${this.escapeHTML(c.name)}</span>
-              <span class="font-body-sm text-body-sm text-on-surface-variant">${c.percentage}% of overall spend</span>
+            <div class="flex flex-col items-end">
+              <span class="font-title-md text-title-md text-primary font-bold">${c.amountFormatted}</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">${c.count} txns</span>
             </div>
           </div>
-          <div class="flex flex-col items-end">
-            <span class="font-title-md text-title-md text-primary font-bold">${c.amountFormatted}</span>
-            <span class="font-label-sm text-label-sm text-on-surface-variant">${c.count} txns</span>
+        `).join('');
+      } else {
+        catListEl.innerHTML = `
+          <div class="p-4 text-center text-on-surface-variant font-body-sm">
+            No category spend recorded yet. Log your first expense to view breakdown.
           </div>
-        </div>
-      `).join('');
+        `;
+      }
     }
 
     // Live Upcoming Recurring Subscriptions
@@ -762,7 +817,7 @@ class SmartSpendApp {
       if (subscriptions.length === 0) {
         subsListEl.innerHTML = `
           <div class="p-4 text-center text-on-surface-variant text-xs">
-            No recurring subscriptions active. Add recurring rules in backend or tap to create!
+            No recurring subscriptions recorded. Add subscriptions to track autopay schedules.
           </div>
         `;
         if (subsTotalEl) subsTotalEl.textContent = '₹0';
@@ -819,8 +874,12 @@ class SmartSpendApp {
     const maxAmt = Math.max(1, ...dayTotals);
     chartBars.forEach((bar, index) => {
       const amt = dayTotals[(index + 1) % 7]; // Map M-S
-      const heightPercent = Math.min(100, Math.round((amt / maxAmt) * 100));
-      bar.style.height = `${Math.max(18, heightPercent * 1.05)}px`;
+      const heightPercent = maxAmt > 0 && amt > 0 ? Math.min(100, Math.round((amt / maxAmt) * 100)) : 0;
+      bar.style.height = `${Math.max(8, heightPercent * 1.05)}px`;
+      const tipSpan = bar.previousElementSibling;
+      if (tipSpan) {
+        tipSpan.textContent = amt > 0 ? Math.round(amt) : '0';
+      }
     });
   }
 
@@ -873,7 +932,7 @@ class SmartSpendApp {
     } else if (key === '.') {
       if (!current.includes('.')) current += '.';
     } else {
-      if (current === '0' || current === '450.00' || current === '0.00') {
+      if (current === '0' || current === '0.00') {
         current = key;
       } else {
         if (current.includes('.')) {
@@ -979,6 +1038,14 @@ class SmartSpendApp {
 
         // Re-sync all live data from server
         await this.syncRealtimeData();
+
+        // Reset form
+        if (merchantInput) merchantInput.value = '';
+        if (noteInput) noteInput.value = '';
+        this.addForm.amount = '0';
+        this.addForm.merchant = '';
+        this.addForm.note = '';
+        this.updateKeypadDisplay();
 
         setTimeout(() => {
           if (btn) {
@@ -1371,14 +1438,54 @@ class SmartSpendApp {
     }
   }
 
+  updateAddExpenseDateTime() {
+    const now = new Date();
+    const dateLabel = document.getElementById('add-expense-date-label');
+    const timeLabel = document.getElementById('add-expense-time-label');
+    if (dateLabel) {
+      dateLabel.textContent = `Today, ${now.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`;
+    }
+    if (timeLabel) {
+      timeLabel.textContent = `${this.formatTime(now)} • Auto Synced`;
+    }
+  }
+
+  processScannedUpi() {
+    this.playSound('click');
+    const input = document.getElementById('upiScanInput');
+    const val = input ? input.value.trim() : '';
+    if (!val) {
+      this.showToast('Please enter a merchant or UPI ID');
+      return;
+    }
+    this.closeScannerModal();
+    this.switchTab('add-expense');
+    const merchantInput = document.getElementById('merchant-input');
+    if (merchantInput) merchantInput.value = val;
+    this.addForm.merchant = val;
+    if (input) input.value = '';
+    this.showToast(`Selected merchant: ${val}`);
+  }
+
   updateProfileUI(user) {
     if (!user) return;
-    const nameEls = document.querySelectorAll('#view-profile h2, #home-greeting-heading');
+    const nameEls = document.querySelectorAll('#profile-user-name, #home-greeting-heading');
     nameEls.forEach(el => {
       if (el.id === 'home-greeting-heading') {
-        el.textContent = `Good afternoon, ${user.name.split(' ')[0]} 👋`;
+        const firstName = user.name ? user.name.split(' ')[0] : 'User';
+        el.textContent = `Welcome, ${firstName} 👋`;
+      } else if (el.id === 'profile-user-name') {
+        el.textContent = user.name || 'User';
       }
     });
+
+    const emailEl = document.getElementById('profile-user-email');
+    if (emailEl && user.email) emailEl.textContent = user.email;
+
+    const avatarInitial = document.getElementById('profile-avatar-initial');
+    if (avatarInitial && user.name) {
+      avatarInitial.textContent = user.name.charAt(0).toUpperCase();
+    }
 
     const monthlyLimitEl = document.getElementById('profile-monthly-limit');
     if (monthlyLimitEl && this.liveData.dashboard?.monthlyBudget) {

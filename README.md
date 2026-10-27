@@ -1,83 +1,152 @@
-# SmartSpend — Neo-Fintech Expense & Budget Manager
+# SmartSpend — Production-Grade AI-Powered Expense & Budget Manager
 
-A modern, responsive Neo-Fintech frontend for **SmartSpend**, crafted using the design specifications, tokens, and layouts from the provided mockups and code.
+SmartSpend is an AI-powered personal expense tracking, budgeting, and financial intelligence application engineered with a modern full-stack architecture:
+- **Mobile Frontend**: React Native, Expo, TypeScript (Strict), Expo Router, and Custom Neo-Fintech Design Tokens.
+- **Backend API**: Node.js, Express, TypeScript (Strict), Zod validation, and OpenAPI specifications.
+- **Database**: PostgreSQL with Prisma ORM, 3NF normalized schema, and integer minor units (paise) for absolute monetary precision.
+- **AI Copilot**: Server-side provider-independent adapter with deterministic financial pre-aggregation and zero-hallucination guardrails.
+- **Monorepo**: pnpm workspaces (`apps/mobile`, `apps/api`, `packages/shared`).
 
 ---
 
 ## 🌟 Key Features
 
-1. **Unified Single-Page Architecture (SPA)**
-   - **Home Screen**:
-     - Monthly Spend Limit card with neon lime accent, dynamic safe balance computation (`₹16,550`), and animated progress bar (`63%`).
-     - Quick Action pills: *Add Expense*, *Scan UPI*, *Insights*, *Smart AI*.
-     - Today's Spending card with pacing indicator (`₹840` spent of `₹1,200` target).
-     - Contextual AI budget insight tip.
-     - Live Recent Transactions ledger with category tags and payment methods.
-   - **Add Expense Screen (Stack Mode)**:
-     - Full interactive tactile numeric keypad (`0-9`, `.`, `backspace`) and quick preset chips (`+₹50`, `+₹100`, `+₹500`, `+₹1,000`).
-     - Segmented switcher: *Expense* vs *Income*.
-     - Recipient/merchant input with one-click clear button and note field.
-     - Horizontally scrollable Category Carousel (*Food & Dining*, *Groceries*, *Transport*, *Shopping*, *Bills & Utility*, *Entertainment*).
-     - Payment account selection chips (*UPI*, *Cash*, *ICICI Coral Card*).
-     - Anti-duplicate transaction shield indicator.
-     - Real-time saving animation with instant recalculation across all tabs!
-   - **Activity Screen**:
-     - Live search bar (searches merchants, notes, and categories).
-     - Interactive filter chips (*All Types*, *Food & Dining*, *UPI*, *Amount > ₹500*, *Income Only*).
-     - October 2024 monthly overview snapshot card with budget burn bar.
-     - Grouped date-wise transactions (*Today*, *Yesterday*, *22 October*, *Earlier*).
-     - Interactive transaction details sheet modal with **Edit** and **Delete** actions.
-     - One-click **Export to CSV** feature for monthly statement downloads.
-   - **Insights Screen**:
-     - Period selector pill tabs (*Week*, *Month*, *Quarter*, *Year*).
-     - 2×2 key analytics metric cards (*Total Spent*, *Daily Average*, *Top Category*, *Safe to Spend*).
-     - Weekly Spending Trend Bar Chart with daily target reference line and hover tooltips.
-     - Segmented proportional spending meter and category breakdown breakdown list.
-     - Upcoming subscriptions reminder card (*Netflix Premium*, *Spotify Duo*, *Cult.fit Pass*).
-   - **Profile Screen**:
-     - User overview (*Rohan Sharma*, Pro fintech member).
-     - Active linked bank accounts and credit cards.
-     - Interactive budget configuration (adjust Monthly Spend Limit and Daily Allowance).
-     - App preferences (Audio haptic clicks toggle, Device Frame toggle, Reset demo data).
+1. **Tactile & Ergonomic Mobile UI**
+   - **Home Dashboard**: Live Safe Monthly Balance (`₹16,550.00`), pacing bar (`63%` spent), Today's Spending pace vs daily target (`₹840.00` / `₹1,200.00`), and recent transaction ledger.
+   - **Tactile Keypad Entry**: Full numeric keypad (`0-9`, `.`, `⌫`) with quick preset chips (`+₹50`, `+₹100`, `+₹500`, `+₹1,000`), expense/income switcher, category carousel, and payment method chips.
+   - **Activity & Search**: Real-time multi-field search (merchants, notes, tags), date grouping (*Today*, *Yesterday*, date headers), filter chips, and statement CSV export.
+   - **Analytics & Insights**: 2×2 metric grid, 7-day spending pace bar chart with daily target threshold line, category distribution bars, and upcoming subscription autopays.
+   - **Budgets Tab**: Overall monthly spending limit controls, safe daily pace calculation, and category-level limits with alert thresholds.
+   - **Profile & Settings**: Dark/Light mode switcher, preferred currency (`INR ₹`), timezone, audio/haptic clicks toggle, encrypted archive export, and account deletion.
 
-2. **Interactive Modals & Extras**:
-   - **Scan UPI Simulator**: Laser scanning animation with quick sample QR codes (*Blue Tokai*, *Uber*, *Grocery*) that auto-fill the transaction form.
-   - **SmartSpend AI Assistant**: Conversational financial copilot with suggestions ("*Can I afford dinner tonight?*", "*Top spend category?*", etc.).
-   - **Notifications Center**: Slide-up sheet with unread badges and notification history.
-   - **Web Audio Haptics**: Subtle, pleasant fintech synth feedback on keypad clicks and successful transaction saves (toggleable in Profile).
-   - **Device Frame / Fluid Toggle**: On desktop, view inside an authentic mobile device shell or toggle to fluid full-screen responsive layout.
+2. **Interactive Modals & Tools**
+   - **AI Financial Copilot**: Conversational chat with suggested query chips (*"Can I afford dinner tonight?"*, *"Where did most of my money go this month?"*), backed by live database numbers or deterministic rule engine.
+   - **Scan UPI Simulator**: Laser scanning viewfinder animation with quick sample QR presets (*Blue Tokai*, *Uber Premier*, *Blinkit Groceries*).
+   - **Notifications Center**: In-app alert history (budget threshold warnings, subscription autopay reminders) with unread counter.
+
+3. **Deterministic Financial Integrity**
+   - Authoritative daily allowance calculation:
+     $$\text{Daily Allowance} = \frac{\max(0, \text{Budget Limit} - \text{MTD Expenses})}{\max(1, \text{Days Remaining})}$$
+   - Exact integer minor units: All amounts stored and computed in **paise** (`1 INR = 100 paise`), preventing floating-point rounding drift.
 
 ---
 
-## 🚀 Running the Project
+## 📁 Repository Structure
 
-### Prerequisites
-- Node.js (v18+)
-
-### Starting the Local Server
-From the project folder, run:
-```bash
-node server.js
 ```
-or
-```bash
-npm start
-```
-
-Open your browser and navigate to:
-```
-http://localhost:3000
+smartspend/
+├── apps/
+│   ├── mobile/               # React Native + Expo Android Mobile App
+│   │   ├── app/              # Expo Router File-Based Navigation
+│   │   │   ├── (auth)/       # Login, Register, Forgot Password
+│   │   │   ├── (tabs)/       # Home, Activity, Insights, Budgets, Profile
+│   │   │   ├── modal/        # Add Transaction, AI Assistant, Scan UPI, Notifications
+│   │   │   ├── onboarding/   # Introduction Carousel
+│   │   │   └── _layout.tsx   # Root navigation stack & providers
+│   │   ├── src/
+│   │   │   ├── components/   # UI Design System (CurrencyText, TransactionRow, Keypad, etc.)
+│   │   │   ├── theme/        # Design Tokens (#172033, #F7F8F5, #B8F36B)
+│   │   │   ├── services/     # API Client with Android 10.0.2.2 auto-resolution
+│   │   │   └── hooks/        # React Query hooks (useDashboard, useTransactions)
+│   │   ├── assets/           # App icons, splash, and adaptive icons
+│   │   └── package.json
+│   │
+│   └── api/                  # Node.js + Express + Prisma REST API
+│       ├── src/              # Layered controllers, services, repositories
+│       ├── prisma/           # PostgreSQL schema & seed script
+│       ├── tests/            # Vitest unit & integration test suites
+│       └── package.json
+│
+├── packages/
+│   └── shared/               # Shared TypeScript types, Zod schemas, constants, and money utils
+│
+├── docs/                     # Technical documentation suite
+│   ├── PRD.md                # Product Requirements Document
+│   ├── ARCHITECTURE.md       # Full-Stack System Architecture
+│   ├── DATABASE.md           # PostgreSQL Data Dictionary & ERD
+│   ├── API.md                # REST API Specification (/api/v1)
+│   ├── SECURITY.md           # Security & Cryptography Guidelines
+│   ├── TESTING.md            # Testing Strategy & Verification Matrix
+│   ├── DEPLOYMENT.md         # Production Deployment Runbook
+│   └── DEVELOPMENT.md        # Developer Setup Guide
+│
+├── infra/
+│   ├── docker/               # Production API Dockerfile
+│   └── docker-compose.yml    # PostgreSQL + Express API composition
+│
+├── scripts/                  # Development automation scripts
+├── .env.example              # Documented environment variable template
+├── pnpm-workspace.yaml       # Monorepo configuration
+├── tsconfig.base.json        # Shared TypeScript strict configuration
+└── package.json              # Workspace scripts
 ```
 
 ---
 
-## 📁 File Structure
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- **Node.js**: v20+ or v22+
+- **pnpm**: v9+ (or `npm`)
+- **Docker** (optional, for running local PostgreSQL)
+
+### 2. Environment Configuration
+Copy the template to create your `.env`:
+```bash
+cp .env.example .env
 ```
-SMARTSPEND/
-├── index.html        # Complete Single Page Application with all views & modals
-├── styles.css        # Neo-Fintech design system, animations & device frame styles
-├── app.js            # Reactive state manager, router, keypad, and ledger calculations
-├── server.js         # Zero-dependency local Node.js static server
-├── package.json      # NPM scripts configuration
-└── README.md         # Documentation
+
+### 3. Run PostgreSQL & Backend via Docker (Recommended)
+```bash
+docker compose -f infra/docker-compose.yml up -d
 ```
+The API is live at `http://localhost:4000/api/v1`.
+
+### 4. Run Services Locally
+```bash
+# 1. Install all monorepo dependencies
+pnpm install
+
+# 2. Seed development database
+pnpm db:seed
+
+# 3. Start Backend API Server
+pnpm dev:api
+
+# 4. In a second terminal, start Expo Mobile Application
+pnpm dev:mobile
+```
+
+- In the Expo terminal, press **`a`** to open on your Android Emulator.
+- Press **`w`** to open the web responsive preview in your browser.
+
+> [!NOTE]
+> Inside an Android Emulator, `localhost` maps to the virtual device itself. SmartSpend automatically resolves `http://10.0.2.2:4000/api/v1` for Android and `http://localhost:4000/api/v1` for Web.
+
+---
+
+## 🧪 Testing & Verification
+
+```bash
+# Run Backend Vitest Test Suite (Unit & Integration tests)
+pnpm test
+
+# Run TypeScript strict type-check across all workspaces
+pnpm typecheck
+
+# Build all packages
+pnpm build
+```
+
+---
+
+## 📚 Documentation Quicklinks
+
+- [Product Requirements Document (PRD)](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/PRD.md)
+- [System Architecture](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/ARCHITECTURE.md)
+- [Database Schema & ERD](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/DATABASE.md)
+- [REST API Specification](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/API.md)
+- [Security & Authorization](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/SECURITY.md)
+- [Testing Matrix](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/TESTING.md)
+- [Deployment Runbook](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/DEPLOYMENT.md)
+- [Developer Onboarding](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/DEVELOPMENT.md)
