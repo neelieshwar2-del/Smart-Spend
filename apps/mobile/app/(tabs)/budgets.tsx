@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,19 +17,43 @@ import { BudgetProgressBar } from '../../src/components/ui/BudgetProgressBar';
 import { CurrencyText } from '../../src/components/ui/CurrencyText';
 import { getCategoryIcon } from '../../src/components/dashboard/RecentTransactions';
 
+interface CategoryBudgetItem {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  spent: number;
+  limit: number;
+  spentFormatted: string;
+  limitFormatted: string;
+  percentage: number;
+  status: 'safe' | 'warning' | 'critical';
+}
+
 export default function BudgetsTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, spacing, radii, typography } = useTheme();
   const { dashboard, isLoading, refetch } = useDashboard();
 
-  // Category-specific budgets mock data
-  const [categoryBudgets, setCategoryBudgets] = useState([
-    { id: 'cb_1', name: 'Food & Dining', icon: 'utensils', color: '#F59E0B', spent: 1120000, limit: 1500000, spentFormatted: '₹11,200.00', limitFormatted: '₹15,000.00', percentage: 74, status: 'warning' as const },
-    { id: 'cb_2', name: 'Shopping & Apparel', icon: 'shopping-bag', color: '#EC4899', spent: 750000, limit: 1000000, spentFormatted: '₹7,500.00', limitFormatted: '₹10,000.00', percentage: 75, status: 'warning' as const },
-    { id: 'cb_3', name: 'Transport & Commute', icon: 'car', color: '#3B82F6', spent: 520000, limit: 800000, spentFormatted: '₹5,200.00', limitFormatted: '₹8,000.00', percentage: 65, status: 'safe' as const },
-    { id: 'cb_4', name: 'Bills & Utilities', icon: 'zap', color: '#8B5CF6', spent: 455000, limit: 600000, spentFormatted: '₹4,550.00', limitFormatted: '₹6,000.00', percentage: 75, status: 'safe' as const },
-  ]);
+  // Dynamic category limits derived from dashboard breakdown
+  const categoryBudgets: CategoryBudgetItem[] = useMemo(() => {
+    if (!dashboard?.topCategories || dashboard.topCategories.length === 0) {
+      return [];
+    }
+    return dashboard.topCategories.map((cb: any, idx: number): CategoryBudgetItem => ({
+      id: `cb_${idx}`,
+      name: cb.name,
+      icon: cb.icon,
+      color: cb.color,
+      spent: cb.amount,
+      limit: cb.amount,
+      spentFormatted: cb.amountFormatted,
+      limitFormatted: cb.amountFormatted,
+      percentage: cb.percentage,
+      status: (cb.percentage > 85 ? 'critical' : cb.percentage > 60 ? 'warning' : 'safe') as 'safe' | 'warning' | 'critical',
+    }));
+  }, [dashboard?.topCategories]);
 
   const budget = dashboard?.monthlyBudget;
 
@@ -164,48 +188,71 @@ export default function BudgetsTabScreen() {
             </TouchableOpacity>
           </View>
 
-          {categoryBudgets.map((cb) => (
+          {categoryBudgets.length === 0 ? (
             <View
-              key={cb.id}
               style={[
                 styles.categoryBudgetCard,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
                   borderRadius: radii.lg,
-                  padding: spacing.md,
-                  marginBottom: spacing.sm,
+                  padding: spacing.lg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 },
               ]}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <View style={[styles.catIconWrap, { backgroundColor: `${cb.color}1F` }]}>
-                    {getCategoryIcon(cb.icon, cb.color, 16)}
+              <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+                No category spending logged yet.
+              </Text>
+              <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center', marginTop: 4 }]}>
+                Add transactions to see automated category-wise budget tracking.
+              </Text>
+            </View>
+          ) : (
+            categoryBudgets.map((cb: CategoryBudgetItem) => (
+              <View
+                key={cb.id}
+                style={[
+                  styles.categoryBudgetCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderRadius: radii.lg,
+                    padding: spacing.md,
+                    marginBottom: spacing.sm,
+                  },
+                ]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={[styles.catIconWrap, { backgroundColor: `${cb.color}1F` }]}>
+                      {getCategoryIcon(cb.icon, cb.color, 16)}
+                    </View>
+                    <View>
+                      <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
+                        {cb.name}
+                      </Text>
+                      <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                        Limit: {cb.limitFormatted}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                      {cb.name}
+
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[typography.bodySm, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
+                      {cb.spentFormatted}
                     </Text>
                     <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                      Limit: {cb.limitFormatted}
+                      {cb.percentage}% used
                     </Text>
                   </View>
                 </View>
 
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[typography.bodySm, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
-                    {cb.spentFormatted}
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                    {cb.percentage}% used
-                  </Text>
-                </View>
+                <BudgetProgressBar percentage={cb.percentage} status={cb.status} height={6} />
               </View>
-
-              <BudgetProgressBar percentage={cb.percentage} status={cb.status} height={6} />
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </View>

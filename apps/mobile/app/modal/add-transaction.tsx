@@ -26,8 +26,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { Keypad } from '../../src/components/common/Keypad';
 import { useTransactions } from '../../src/hooks/useTransactions';
-import { INITIAL_CATEGORIES } from '../../src/services/mockData';
-import { TransactionType, PaymentMethod, Category } from '../../src/types';
+import { TransactionType, PaymentMethod, Category, DEFAULT_CATEGORIES } from '../../src/types';
 import { getCategoryIcon } from '../../src/components/dashboard/RecentTransactions';
 
 export default function AddTransactionModal() {
@@ -39,7 +38,7 @@ export default function AddTransactionModal() {
   // State
   const [type, setType] = useState<TransactionType>('expense');
   const [amountStr, setAmountStr] = useState<string>('0');
-  const [selectedCatId, setSelectedCatId] = useState<string>(INITIAL_CATEGORIES[0].id);
+  const [selectedCatId, setSelectedCatId] = useState<string>(DEFAULT_CATEGORIES[0].id);
   const [merchant, setMerchant] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
@@ -108,7 +107,7 @@ export default function AddTransactionModal() {
     }
   };
 
-  const filteredCategories = INITIAL_CATEGORIES.filter(c => c.type === type);
+  const filteredCategories = DEFAULT_CATEGORIES.filter(c => c.type === type);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 12) }]}>
@@ -149,7 +148,7 @@ export default function AddTransactionModal() {
             activeOpacity={0.8}
             onPress={() => {
               setType('expense');
-              setSelectedCatId(INITIAL_CATEGORIES[0].id);
+              setSelectedCatId(DEFAULT_CATEGORIES[0].id);
             }}
             style={[
               styles.segmentBtn,
@@ -174,7 +173,7 @@ export default function AddTransactionModal() {
             activeOpacity={0.8}
             onPress={() => {
               setType('income');
-              const incCat = INITIAL_CATEGORIES.find((c: Category) => c.type === 'income');
+              const incCat = DEFAULT_CATEGORIES.find((c: Category) => c.type === 'income');
               if (incCat) setSelectedCatId(incCat.id);
             }}
             style={[

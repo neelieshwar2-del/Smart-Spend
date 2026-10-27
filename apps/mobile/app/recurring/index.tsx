@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Calendar, ShieldCheck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
-import { INITIAL_RECURRING } from '../../src/services/mockData';
+import { api } from '../../src/services/api';
+import { RecurringRule } from '../../src/types';
 import { CurrencyText } from '../../src/components/ui/CurrencyText';
 
 export default function RecurringScreen() {
@@ -20,7 +21,15 @@ export default function RecurringScreen() {
   const insets = useSafeAreaInsets();
   const { colors, spacing, radii, typography } = useTheme();
 
-  const [rules, setRules] = useState(INITIAL_RECURRING);
+  const [rules, setRules] = useState<RecurringRule[]>([]);
+
+  useEffect(() => {
+    api.getRecurring()
+      .then(items => {
+        if (items) setRules(items);
+      })
+      .catch(() => {});
+  }, []);
 
   const totalMonthlyCommitment = rules
     .filter(r => r.isActive)

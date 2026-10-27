@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../src/prisma/client.js';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding SmartSpend database with default categories and demo user...');
@@ -84,7 +82,7 @@ async function main() {
 
   // 4. Seed Categories map
   const categories = await prisma.category.findMany();
-  const catMap = new Map(categories.map(c => [c.name, c.id]));
+  const catMap = new Map(categories.map((c: any) => [c.name, c.id]));
 
   // 5. Seed Transactions for Demo User if empty
   const txnCount = await prisma.transaction.count({

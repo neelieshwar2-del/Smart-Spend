@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, CheckCheck, Bell, AlertTriangle, Calendar, Receipt } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
-import { INITIAL_NOTIFICATIONS } from '../../src/services/mockData';
+import { api } from '../../src/services/api';
 import { NotificationItem } from '../../src/types';
 
 export default function NotificationsModal() {
@@ -18,7 +18,15 @@ export default function NotificationsModal() {
   const insets = useSafeAreaInsets();
   const { colors, spacing, radii, typography } = useTheme();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  useEffect(() => {
+    api.getNotifications()
+      .then(items => {
+        if (items) setNotifications(items);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleMarkAllRead = () => {
     setNotifications((prev: NotificationItem[]) =>

@@ -15,6 +15,7 @@
     "test": "pnpm --filter @smartspend/api test",
     "db:generate": "pnpm --filter @smartspend/api prisma:generate",
     "db:migrate": "pnpm --filter @smartspend/api prisma:migrate",
+    "db:push": "pnpm --filter @smartspend/api prisma:push",
     "db:seed": "pnpm --filter @smartspend/api prisma:seed",
     "docker:up": "docker compose -f infra/docker-compose.yml up -d",
     "docker:down": "docker compose -f infra/docker-compose.yml down"

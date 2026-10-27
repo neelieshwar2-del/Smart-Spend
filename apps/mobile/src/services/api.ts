@@ -2,13 +2,6 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import {
-  INITIAL_DASHBOARD,
-  INITIAL_TRANSACTIONS,
-  INITIAL_CATEGORIES,
-  INITIAL_RECURRING,
-  INITIAL_NOTIFICATIONS,
-} from './mockData';
-import {
   DashboardData,
   Transaction,
   Category,
@@ -41,7 +34,7 @@ class MobileApiClient {
   async getAccessToken(): Promise<string | null> {
     try {
       if (Platform.OS === 'web') {
-        return localStorage.getItem(ACCESS_TOKEN_KEY);
+        return typeof localStorage !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
       }
       return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
     } catch {
@@ -52,22 +45,26 @@ class MobileApiClient {
   async setTokens(access: string, refresh: string): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        localStorage.setItem(ACCESS_TOKEN_KEY, access);
-        localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(ACCESS_TOKEN_KEY, access);
+          localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+        }
       } else {
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, access);
         await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refresh);
       }
     } catch (e) {
-      console.warn('Failed to store tokens securely:', e);
+      console.warn('Failed to save tokens:', e);
     }
   }
 
   async clearTokens(): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(ACCESS_TOKEN_KEY);
+          localStorage.removeItem(REFRESH_TOKEN_KEY);
+        }
       } else {
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
         await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
@@ -91,7 +88,7 @@ class MobileApiClient {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -108,178 +105,82 @@ class MobileApiClient {
       return json.data as T;
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.warn(`[API] Failed endpoint ${endpoint}:`, err.message || err);
+      console.warn(`[API] Endpoint ${endpoint} error:`, err.message || err);
       throw err;
     }
   }
 
-  // --- Auth APIs ---
+  // --- Auth Endpoints ---
   async login(email: string, password: string) {
-    try {
-      const res = await this.request<any>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-      if (res.tokens) {
-        await this.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
-      }
-      return res;
-    } catch {
-      // Mock login for offline testing
-      return {
-        user: { id: 'demo_user', name: 'Rohan Sharma', email, currency: 'INR', timezone: 'Asia/Kolkata' },
-      };
+    const res = await this.request<any>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    if (res.tokens) {
+      await this.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
     }
+    return res;
   }
 
   async register(name: string, email: string, password: string) {
-    try {
-      const res = await this.request<any>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ name, email, password }),
-      });
-      if (res.tokens) {
-        await this.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
-      }
-      return res;
-    } catch {
-      return {
-        user: { id: 'demo_user', name, email, currency: 'INR', timezone: 'Asia/Kolkata' },
-      };
+    const res = await this.request<any>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
+    if (res.tokens) {
+      await this.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
     }
+    return res;
   }
 
   // --- Dashboard & Financial Metrics ---
   async getDashboard(): Promise<DashboardData> {
-    try {
-      const data = await this.request<DashboardData>('/budgets/dashboard');
-      return data;
-    } catch {
-      // Return offline high-fidelity mock data
-      return INITIAL_DASHBOARD;
-    }
+    return await this.request<DashboardData>('/budgets/dashboard');
   }
 
   // --- Transactions ---
   async getTransactions(params?: { search?: string; type?: string; categoryId?: string }): Promise<Transaction[]> {
-    try {
-      const query = new URLSearchParams(params as any).toString();
-      const res = await this.request<{ items: Transaction[] }>(`/transactions?${query}`);
-      return res.items || [];
-    } catch {
-      let filtered = [...INITIAL_TRANSACTIONS];
-      if (params?.search) {
-        const s = params.search.toLowerCase();
-        filtered = filtered.filter(t => t.title.toLowerCase().includes(s) || (t.merchant && t.merchant.toLowerCase().includes(s)));
-      }
-      if (params?.type && params.type !== 'all') {
-        filtered = filtered.filter(t => t.type === params.type);
-      }
-      return filtered;
-    }
+    const query = new URLSearchParams(params as any).toString();
+    const res = await this.request<{ items: Transaction[] }>(`/transactions?${query}`);
+    return res.items || [];
   }
 
   async createTransaction(payload: CreateTransactionPayload): Promise<Transaction> {
-    try {
-      const res = await this.request<Transaction>('/transactions', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      return res;
-    } catch {
-      // Optimistic offline creation
-      const cat = INITIAL_CATEGORIES.find(c => c.id === payload.categoryId) || INITIAL_CATEGORIES[0];
-      const newTxn: Transaction = {
-        id: `txn_${Date.now()}`,
-        userId: 'demo_user',
-        type: payload.type,
-        amount: payload.amount,
-        amountFormatted: `₹${(payload.amount / 100).toFixed(2)}`,
-        categoryId: payload.categoryId,
-        categoryName: cat.name,
-        categoryIcon: cat.icon,
-        categoryColor: cat.color,
-        title: payload.title,
-        merchant: payload.merchant || null,
-        note: payload.note || null,
-        paymentMethod: payload.paymentMethod,
-        transactionDate: payload.transactionDate || new Date().toISOString(),
-      };
-      INITIAL_TRANSACTIONS.unshift(newTxn);
-      return newTxn;
-    }
+    return await this.request<Transaction>('/transactions', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   }
 
   async deleteTransaction(id: string): Promise<boolean> {
-    try {
-      await this.request(`/transactions/${id}`, { method: 'DELETE' });
-      return true;
-    } catch {
-      const idx = INITIAL_TRANSACTIONS.findIndex(t => t.id === id);
-      if (idx !== -1) INITIAL_TRANSACTIONS.splice(idx, 1);
-      return true;
-    }
+    await this.request(`/transactions/${id}`, { method: 'DELETE' });
+    return true;
   }
 
   // --- Categories ---
   async getCategories(): Promise<Category[]> {
-    try {
-      const res = await this.request<Category[]>('/categories');
-      return res;
-    } catch {
-      return INITIAL_CATEGORIES;
-    }
+    const res = await this.request<Category[]>('/categories');
+    return res || [];
   }
 
   // --- Recurring Subscriptions ---
   async getRecurring(): Promise<RecurringRule[]> {
-    try {
-      const res = await this.request<RecurringRule[]>('/recurring');
-      return res;
-    } catch {
-      return INITIAL_RECURRING;
-    }
+    const res = await this.request<RecurringRule[]>('/recurring');
+    return res || [];
   }
 
   // --- Notifications ---
   async getNotifications(): Promise<NotificationItem[]> {
-    try {
-      const res = await this.request<NotificationItem[]>('/notifications');
-      return res;
-    } catch {
-      return INITIAL_NOTIFICATIONS;
-    }
+    const res = await this.request<NotificationItem[]>('/notifications');
+    return res || [];
   }
 
   // --- AI Financial Assistant ---
   async chatAi(message: string): Promise<{ answer: string; model: string; metrics: any }> {
-    try {
-      const res = await this.request<any>('/ai/chat', {
-        method: 'POST',
-        body: JSON.stringify({ message }),
-      });
-      return res;
-    } catch {
-      const lower = message.toLowerCase();
-      if (lower.includes('dinner') || lower.includes('afford')) {
-        return {
-          answer: 'Yes! You currently have ₹3,310.00 safe daily allowance today and a remaining budget of ₹16,550.00. Dining under ₹600 keeps you comfortably on track! 🍽️',
-          model: 'smartspend-deterministic-offline-engine',
-          metrics: { remainingBudget: '₹16,550.00', dailyAllowance: '₹3,310.00' },
-        };
-      } else if (lower.includes('category') || lower.includes('most') || lower.includes('spend')) {
-        return {
-          answer: 'Your highest spending category this month is **Food & Dining** at **₹11,200.00**, representing **39%** of your total monthly expenses. 📊',
-          model: 'smartspend-deterministic-offline-engine',
-          metrics: { topCategory: 'Food & Dining', totalExpense: '₹28,450.00' },
-        };
-      }
-      return {
-        answer: 'Based on your live ledger: You have spent ₹28,450.00 against your ₹45,000.00 monthly limit (63% used). You have ₹16,550.00 remaining for the next 5 days! 💡',
-        model: 'smartspend-deterministic-offline-engine',
-        metrics: { remainingBudget: '₹16,550.00', totalExpense: '₹28,450.00' },
-      };
-    }
+    return await this.request<any>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
   }
 }
 

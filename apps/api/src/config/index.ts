@@ -2,14 +2,17 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { z } from 'zod';
 
-// Load .env file from project root or current app directory
-const envPath = typeof __dirname !== 'undefined'
-  ? path.resolve(__dirname, '../../.env')
-  : path.resolve(process.cwd(), '.env');
+// Load .env file from project root
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '../../.env'),
+  typeof __dirname !== 'undefined' ? path.resolve(__dirname, '../../../.env') : null,
+  typeof __dirname !== 'undefined' ? path.resolve(__dirname, '../../.env') : null,
+].filter(Boolean) as string[];
 
-dotenv.config({ path: envPath });
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config();
+for (const envCandidate of envCandidates) {
+  dotenv.config({ path: envCandidate });
+}
 
 const envSchema = z.object({
   PORT: z.string().default('4000').transform(val => parseInt(val, 10)),
@@ -17,6 +20,7 @@ const envSchema = z.object({
   API_PREFIX: z.string().default('/api/v1'),
   CORS_ORIGIN: z.string().default('*'),
   DATABASE_URL: z.string().default('postgresql://postgres:postgres@localhost:5432/smartspend?schema=public'),
+  DIRECT_URL: z.string().optional(),
   JWT_ACCESS_SECRET: z.string().default('smartspend_jwt_access_super_secret_key_min32chars'),
   JWT_REFRESH_SECRET: z.string().default('smartspend_jwt_refresh_super_secret_key_min32chars'),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),

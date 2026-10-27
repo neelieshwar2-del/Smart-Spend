@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { useDashboard } from '../../src/hooks/useDashboard';
 import { getCategoryIcon } from '../../src/components/dashboard/RecentTransactions';
+import { api } from '../../src/services/api';
 
 export default function InsightsScreen() {
   const router = useRouter();
@@ -26,23 +27,48 @@ export default function InsightsScreen() {
   const { colors, spacing, radii, typography } = useTheme();
   const { dashboard, isLoading, refetch } = useDashboard();
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [recurringList, setRecurringList] = useState<any[]>([]);
 
-  // 7-day spending trend mock
-  const weeklyData = [
-    { day: 'Mon', amount: 840, target: 1200 },
-    { day: 'Tue', amount: 1450, target: 1200 },
-    { day: 'Wed', amount: 620, target: 1200 },
-    { day: 'Thu', amount: 1890, target: 1200 },
-    { day: 'Fri', amount: 2400, target: 1200 },
-    { day: 'Sat', amount: 1100, target: 1200 },
-    { day: 'Sun', amount: 450, target: 1200 },
-  ];
-  const maxBar = Math.max(...weeklyData.map(d => d.amount));
+  useEffect(() => {
+    api.getRecurring()
+      .then(items => {
+        if (items) setRecurringList(items);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Compute 7-day spending trend dynamically from recent transactions
+  const weeklyData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const result: Array<{ day: string; amount: number; target: number }> = [];
+    const dailyTargetRupees = (dashboard?.todaySpending?.dailyTarget || 120000) / 100;
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dayName = days[d.getDay()];
+      const dateStr = d.toISOString().slice(0, 10);
+
+      let dayTotalRupees = 0;
+      if (dashboard?.recentTransactions) {
+        for (const t of dashboard.recentTransactions) {
+          if (t.type === 'expense' && t.transactionDate && t.transactionDate.startsWith(dateStr)) {
+            dayTotalRupees += (t.amount || 0) / 100;
+          }
+        }
+      }
+      result.push({ day: dayName, amount: dayTotalRupees, target: dailyTargetRupees });
+    }
+    return result;
+  }, [dashboard?.recentTransactions, dashboard?.todaySpending?.dailyTarget]);
+
+  const maxBar = Math.max(1, ...weeklyData.map(d => d.amount));
 
   const topCat = dashboard?.topCategories?.[0] || {
-    name: 'Food & Dining',
-    amountFormatted: '₹8,450.00',
-    percentage: 30,
+    name: 'General',
+    amountFormatted: '₹0.00',
+    percentage: 0,
   };
 
   return (
@@ -252,34 +278,36 @@ export default function InsightsScreen() {
               <Calendar size={18} color={colors.textPrimary} />
               <Text style={[typography.title, { color: colors.textPrimary }]}>Recurring Autopays</Text>
             </View>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>3 Active</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>{recurringList.length} Active</Text>
           </View>
 
-          {[
-            { id: '1', title: 'Netflix Standard', nextDueDate: '02 Nov', amountFormatted: '₹499.00' },
-            { id: '2', title: 'Cult.fit Elite Pass', nextDueDate: '08 Nov', amountFormatted: '₹1,450.00' },
-            { id: '3', title: 'Spotify Premium Family', nextDueDate: '15 Nov', amountFormatted: '₹179.00' },
-          ].map((sub, idx, arr) => (
-            <View
-              key={sub.id}
-              style={[
-                styles.subRow,
-                {
-                  borderBottomWidth: idx === arr.length - 1 ? 0 : 1,
-                  borderBottomColor: colors.border,
-                  paddingVertical: spacing.sm,
-                },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>{sub.title}</Text>
-                <Text style={[typography.caption, { color: colors.textSecondary }]}>Due: {sub.nextDueDate}</Text>
+          {recurringList.length === 0 ? (
+            <Text style={[typography.caption, { color: colors.textSecondary, paddingVertical: 8 }]}>
+              No active recurring subscriptions found.
+            </Text>
+          ) : (
+            recurringList.map((sub: any, idx: number, arr: any[]) => (
+              <View
+                key={sub.id}
+                style={[
+                  styles.subRow,
+                  {
+                    borderBottomWidth: idx === arr.length - 1 ? 0 : 1,
+                    borderBottomColor: colors.border,
+                    paddingVertical: spacing.sm,
+                  },
+                ]}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>{sub.title}</Text>
+                  <Text style={[typography.caption, { color: colors.textSecondary }]}>Due: {sub.nextDueDate}</Text>
+                </View>
+                <Text style={[typography.body, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
+                  {sub.amountFormatted || `₹${(sub.amount / 100).toFixed(2)}`}/mo
+                </Text>
               </View>
-              <Text style={[typography.body, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
-                {sub.amountFormatted}/mo
-              </Text>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </View>

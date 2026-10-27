@@ -20,6 +20,20 @@ export interface Category {
   isDefault?: boolean;
 }
 
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'cat_food', name: 'Food & Dining', icon: 'utensils', color: '#F59E0B', type: 'expense', isDefault: true },
+  { id: 'cat_groceries', name: 'Groceries', icon: 'shopping-cart', color: '#10B981', type: 'expense', isDefault: true },
+  { id: 'cat_transport', name: 'Transport', icon: 'car', color: '#3B82F6', type: 'expense', isDefault: true },
+  { id: 'cat_shopping', name: 'Shopping', icon: 'shopping-bag', color: '#EC4899', type: 'expense', isDefault: true },
+  { id: 'cat_bills', name: 'Bills & Utilities', icon: 'zap', color: '#8B5CF6', type: 'expense', isDefault: true },
+  { id: 'cat_entertainment', name: 'Entertainment', icon: 'film', color: '#F43F5E', type: 'expense', isDefault: true },
+  { id: 'cat_health', name: 'Health & Fitness', icon: 'heart', color: '#06B6D4', type: 'expense', isDefault: true },
+  { id: 'cat_education', name: 'Education', icon: 'book', color: '#6366F1', type: 'expense', isDefault: true },
+  { id: 'cat_salary', name: 'Salary', icon: 'briefcase', color: '#22C55E', type: 'income', isDefault: true },
+  { id: 'cat_freelance', name: 'Freelance', icon: 'laptop', color: '#14B8A6', type: 'income', isDefault: true },
+  { id: 'cat_investments', name: 'Investments', icon: 'trending-up', color: '#84CC16', type: 'income', isDefault: true },
+];
+
 export interface Transaction {
   id: string;
   userId: string;
