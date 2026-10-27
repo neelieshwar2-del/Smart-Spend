@@ -11,8 +11,11 @@ import {
   AiChatMessage,
 } from '../types';
 
-// Dynamic Host Resolution: Android Emulator uses 10.0.2.2, Web uses localhost
+// Dynamic Host Resolution: Supports EXPO_PUBLIC_API_URL env var, Android Emulator 10.0.2.2, or localhost
 const getBaseUrl = (): string => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
   if (Platform.OS === 'android') {
     // 10.0.2.2 maps to the host machine from the Android emulator
     return 'http://10.0.2.2:4000/api/v1';

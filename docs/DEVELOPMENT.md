@@ -61,12 +61,14 @@ pnpm dev:mobile
 
 ---
 
-## 3. Network Architecture for Android
+## 3. Network Architecture for Multi-Device & Mobile
 
-Inside an Android emulator, `localhost` refers to the emulator itself. SmartSpend's mobile API client automatically routes:
-- **Android Emulator**: `http://10.0.2.2:4000/api/v1`
-- **Physical Phone on LAN**: `http://<YOUR_COMPUTER_LAN_IP>:4000/api/v1`
-- **Web**: `http://localhost:4000/api/v1`
+SmartSpend's mobile API client (`apps/mobile/src/services/api.ts`) automatically resolves:
+- **Physical Phone / Cross-Device**: Checks `EXPO_PUBLIC_API_URL` first (e.g. `http://<YOUR_LAN_IP>:4000/api/v1`).
+- **Android Virtual Device (AVD Emulator)**: Falls back to `http://10.0.2.2:4000/api/v1` (which maps to host machine port 4000).
+- **Web Browser**: Uses `http://localhost:4000/api/v1` (or relative reverse proxy `/api`).
+
+For detailed multi-device testing options (Expo Go, Expo Tunnel, USB ADB reverse, web browser access, and APK build), consult the main [README.md](../README.md).
 
 ---
 

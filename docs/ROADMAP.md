@@ -17,12 +17,12 @@ This roadmap details the engineering execution strategy for SmartSpend, moving s
 
 ### Phase 0 — Inspect, Plan & Architecture (Completed)
 - [x] Comprehensive repository audit (existing web prototype, Express backend, Prisma schema).
-- [x] Product Requirements Document ([`docs/PRD.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/PRD.md)).
-- [x] System Architecture Document ([`docs/ARCHITECTURE.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/ARCHITECTURE.md)).
-- [x] Database Architecture & Data Dictionary ([`docs/DATABASE.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/DATABASE.md)).
-- [x] REST API Specification ([`docs/API.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/API.md)).
-- [x] Security & Authorization Specification ([`docs/SECURITY.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/SECURITY.md)).
-- [x] Testing Strategy & Verification Matrix ([`docs/TESTING.md`](file:///c:/Users/vuppa/Documents/projects/Smart-Spend/docs/TESTING.md)).
+- [x] Product Requirements Document ([`docs/PRD.md`](./PRD.md)).
+- [x] System Architecture Document ([`docs/ARCHITECTURE.md`](./ARCHITECTURE.md)).
+- [x] Database Architecture & Data Dictionary ([`docs/DATABASE.md`](./DATABASE.md)).
+- [x] REST API Specification ([`docs/API.md`](./API.md)).
+- [x] Security & Authorization Specification ([`docs/SECURITY.md`](./SECURITY.md)).
+- [x] Testing Strategy & Verification Matrix ([`docs/TESTING.md`](./TESTING.md)).
 
 ---
 
