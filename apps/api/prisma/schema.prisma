@@ -1,0 +1,156 @@
+// SmartSpend Normalized Prisma Schema
+// PostgreSQL Normalized Schema with integer minor units (paise) for money handling
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  currency     String   @default("INR")
+  timezone     String   @default("Asia/Kolkata")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  refreshTokens   RefreshToken[]
+  transactions    Transaction[]
+  categories      Category[]
+  budgets         Budget[]
+  recurringRules  RecurringRule[]
+  notifications   Notification[]
+  aiInsights      AiInsight[]
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashedToken String    @unique
+  family      String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([family])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String   @default("receipt")
+  color     String   @default("#555e74")
+  type      String   @default("expense") // "expense" | "income"
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relationships
+  transactions   Transaction[]
+  budgets        Budget[]
+  recurringRules RecurringRule[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+}
+
+model Transaction {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String         @default("expense") // "expense" | "income"
+  amount          Int            // Stored in paise (integer minor units, e.g. 45000 = ₹450.00)
+  categoryId      String
+  category        Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title           String
+  merchant        String?
+  note            String?
+  transactionDate DateTime       @default(now())
+  paymentMethod   String         @default("UPI")
+  isRecurring     Boolean        @default(false)
+  recurringRuleId String?
+  recurringRule   RecurringRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId, transactionDate])
+  @@index([userId, categoryId])
+  @@index([userId, type])
+}
+
+model Budget {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  amountLimit Int       // Stored in paise (integer minor units, e.g. 4500000 = ₹45,000.00)
+  period      String    @default("monthly") // "weekly" | "monthly"
+  categoryId  String?   // null indicates an overall spending limit
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, startDate, endDate])
+}
+
+model RecurringRule {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  amount      Int           // Stored in paise (e.g. 64900 = ₹649.00)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  frequency   String        @default("monthly") // "daily" | "weekly" | "monthly" | "yearly"
+  interval    Int           @default(1)
+  nextDueDate DateTime
+  endDate     DateTime?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relationships
+  transactions Transaction[]
+
+  @@index([userId, isActive, nextDueDate])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // "BUDGET_WARNING" | "RECURRING_DUE" | "TRANSACTION_LOGGED" | "INSIGHT_READY"
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model AiInsight {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   @default("spending_summary")
+  content   String
+  metadata  String?  // JSON stringified context
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

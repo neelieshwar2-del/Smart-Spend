@@ -1,18 +1,26 @@
 {
-  "name": "smartspend-frontend",
+  "name": "smartspend-monorepo",
   "version": "1.0.0",
-  "description": "SmartSpend — Neo-Fintech Expense & Budget Manager Frontend",
+  "private": true,
+  "description": "SmartSpend — Production-Grade AI-Powered Android & Full-Stack Personal Finance Monorepo",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "pnpm --filter @smartspend/api dev",
+    "dev:mobile": "pnpm --filter @smartspend/mobile start",
+    "dev:api": "pnpm --filter @smartspend/api dev",
+    "build": "pnpm --filter \"@smartspend/*\" build",
+    "lint": "pnpm --filter \"@smartspend/*\" lint",
+    "typecheck": "pnpm --filter \"@smartspend/*\" typecheck",
+    "test": "pnpm --filter @smartspend/api test",
+    "db:generate": "pnpm --filter @smartspend/api prisma:generate",
+    "db:migrate": "pnpm --filter @smartspend/api prisma:migrate",
+    "db:push": "pnpm --filter @smartspend/api prisma:push",
+    "db:seed": "pnpm --filter @smartspend/api prisma:seed",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker-compose.yml down"
   },
-  "keywords": [
-    "fintech",
-    "expense-tracker",
-    "budget-app",
-    "tailwind"
-  ],
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
 }

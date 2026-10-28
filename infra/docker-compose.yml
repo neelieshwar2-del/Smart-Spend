@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartspend-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: smartspend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smartspend"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: smartspend-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      API_PREFIX: /api/v1
+      CORS_ORIGIN: "*"
+      DATABASE_URL: "postgresql://postgres:postgrespassword@postgres:5432/smartspend?schema=public"
+      JWT_ACCESS_SECRET: "smartspend_jwt_access_super_secret_key_change_in_production_min32chars"
+      JWT_REFRESH_SECRET: "smartspend_jwt_refresh_super_secret_key_change_in_production_min32chars"
+      JWT_ACCESS_EXPIRES_IN: "15m"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 100
+      AI_PROVIDER: "none"
+      BCRYPT_SALT_ROUNDS: 12
+    ports:
+      - "4000:4000"
+
+volumes:
+  postgres_data:
+    driver: local

@@ -209,7 +209,7 @@
         <div class="flex items-center justify-between pt-1">
           <div class="flex flex-col min-w-0">
             <span class="font-label-sm text-label-sm text-on-surface-variant font-medium tracking-wide uppercase" id="home-date-label">Today</span>
-            <h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight truncate" id="home-greeting-heading">Welcome to SmartSpend 👋</h1>
+            <h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight truncate" id="home-greeting-heading">Welcome 👋</h1>
           </div>
           <div class="relative shrink-0">
             <button aria-label="Notifications" onclick="app.openNotifications()" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors active:scale-95">
@@ -229,15 +229,15 @@
               <span class="font-label-md text-label-md text-on-primary-container font-medium tracking-wide">Monthly Spend Limit</span>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/10 backdrop-blur-md">
                 <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
-                <span class="font-label-sm text-label-sm text-on-primary font-semibold">7 days remaining in Oct</span>
+                <span class="font-label-sm text-label-sm text-on-primary font-semibold" id="home-days-remaining">-- days remaining</span>
               </div>
             </div>
 
             <!-- Main Balance Display -->
             <div class="flex flex-col">
               <div class="flex items-baseline gap-2">
-                <span class="font-display-lg-mobile text-display-lg-mobile font-bold tracking-tight text-surface-container-lowest" id="home-safe-balance">₹16,550</span>
-                <span class="font-label-md text-label-md text-secondary-container font-semibold bg-secondary-container/20 px-2 py-0.5 rounded-full" id="home-percent-left">37% left</span>
+                <span class="font-display-lg-mobile text-display-lg-mobile font-bold tracking-tight text-surface-container-lowest" id="home-safe-balance">₹0</span>
+                <span class="font-label-md text-label-md text-secondary-container font-semibold bg-secondary-container/20 px-2 py-0.5 rounded-full" id="home-percent-left">0% left</span>
               </div>
               <span class="font-body-sm text-body-sm text-on-primary-container mt-0.5">Remaining safe balance to spend</span>
             </div>
@@ -245,11 +245,11 @@
             <!-- Custom Progress Bar -->
             <div class="space-y-1.5">
               <div class="w-full h-2.5 bg-surface-container-lowest/15 rounded-full overflow-hidden p-0.5 flex items-center">
-                <div id="home-progress-bar" class="h-full bg-secondary-container rounded-full transition-all duration-700 ease-out" style="width: 63%;"></div>
+                <div id="home-progress-bar" class="h-full bg-secondary-container rounded-full transition-all duration-700 ease-out" style="width: 0%;"></div>
               </div>
               <div class="flex justify-between items-center text-on-primary-container font-label-sm text-label-sm">
-                <span>Spent: <strong class="text-surface-container-lowest font-medium" id="home-spent-text">₹28,450</strong></span>
-                <span>Target: <strong class="text-surface-container-lowest font-medium" id="home-target-text">₹45,000</strong></span>
+                <span>Spent: <strong class="text-surface-container-lowest font-medium" id="home-spent-text">₹0</strong></span>
+                <span>Target: <strong class="text-surface-container-lowest font-medium" id="home-target-text">₹0</strong></span>
               </div>
             </div>
           </div>
@@ -295,26 +295,26 @@
               </div>
               <span class="font-title-md text-title-md text-on-surface font-bold">Today's Spending</span>
             </div>
-            <span class="font-label-md text-label-md text-on-surface-variant font-medium" id="home-today-limit">Daily Target ₹1,200</span>
+            <span class="font-label-md text-label-md text-on-surface-variant font-medium" id="home-today-limit">Daily Target ₹0</span>
           </div>
 
           <div class="flex items-baseline justify-between pt-1">
             <div class="flex items-baseline gap-1.5">
-              <span class="font-currency-display text-currency-display text-on-surface font-bold" id="home-today-spent">₹840</span>
+              <span class="font-currency-display text-currency-display text-on-surface font-bold" id="home-today-spent">₹0</span>
               <span class="font-body-sm text-body-sm text-on-surface-variant">spent today</span>
             </div>
-            <span class="font-label-sm text-label-sm font-semibold text-secondary px-2 py-0.5 rounded-full bg-secondary-container/30" id="home-today-percent">70% of allowance</span>
+            <span class="font-label-sm text-label-sm font-semibold text-secondary px-2 py-0.5 rounded-full bg-secondary-container/30" id="home-today-percent">0% of allowance</span>
           </div>
 
           <!-- Segmented / Daily Visual Gauge -->
           <div class="space-y-2">
             <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden flex">
-              <div id="home-today-progress" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 70%;"></div>
+              <div id="home-today-progress" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
             <div class="flex items-center gap-1.5 text-on-surface-variant">
               <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
               <span class="font-label-sm text-label-sm text-on-surface-variant font-medium" id="home-today-buffer">
-                You are on track — <strong class="text-on-surface font-semibold">₹360 buffer remaining</strong>
+                Tracking today's spending against allowance
               </span>
             </div>
           </div>
@@ -330,7 +330,7 @@
               <span class="font-label-sm text-label-sm uppercase tracking-wide text-secondary font-bold">Smart Spend Tip</span>
             </div>
             <p class="font-body-sm text-body-sm text-on-surface font-medium leading-snug mt-0.5" id="home-smart-tip-text">
-              Food &amp; Dining is your highest expense this week (<strong class="font-semibold">₹4,200</strong>). You're <strong class="text-secondary font-semibold">₹120 under</strong> yesterday's pace.
+              Log your expenses to receive personalized AI budget insights and spending pace analysis.
             </p>
           </div>
         </div>
@@ -396,7 +396,7 @@
           <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Enter Amount (INR)</span>
           <div class="flex items-baseline justify-center text-primary-container tracking-tight my-1">
             <span class="font-currency-metric text-currency-metric text-on-surface-variant mr-1">₹</span>
-            <span class="font-display-lg-mobile text-display-lg-mobile font-bold text-on-surface tracking-tight" id="amount-display">450.00</span>
+            <span class="font-display-lg-mobile text-display-lg-mobile font-bold text-on-surface tracking-tight" id="amount-display">0</span>
             <span class="w-0.5 h-8 bg-secondary-fixed ml-1 inline-block animate-pulse"></span>
           </div>
           
@@ -418,7 +418,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <label for="merchant-input" class="block font-label-sm text-label-sm text-on-surface-variant">Paid to / Merchant</label>
-              <input class="w-full bg-transparent font-title-md text-title-md text-on-surface focus:outline-none placeholder:text-outline" id="merchant-input" placeholder="Enter recipient or store" type="text" value="Blue Tokai Coffee Roasters"/>
+              <input class="w-full bg-transparent font-title-md text-title-md text-on-surface focus:outline-none placeholder:text-outline" id="merchant-input" placeholder="Enter recipient or store" type="text" value=""/>
             </div>
             <button aria-label="Clear merchant" class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('merchant-input').value=''">
               <span class="material-symbols-outlined text-[16px]">close</span>
@@ -432,7 +432,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <label for="note-input" class="block font-label-sm text-label-sm text-on-surface-variant">Note (Optional)</label>
-              <input class="w-full bg-transparent font-body-md text-body-md text-on-surface focus:outline-none placeholder:text-outline" id="note-input" placeholder="e.g. Project kick-off sync" type="text" value="Afternoon coffee with client"/>
+              <input class="w-full bg-transparent font-body-md text-body-md text-on-surface focus:outline-none placeholder:text-outline" id="note-input" placeholder="e.g. Lunch with team, monthly groceries" type="text" value=""/>
             </div>
           </div>
         </div>
@@ -444,57 +444,15 @@
               <span class="font-title-md text-title-md text-on-surface font-bold">Category</span>
               <span class="px-2 py-0.5 rounded-full bg-secondary-fixed/30 text-on-surface font-label-sm text-label-sm">Smart Tag</span>
             </div>
-            <button class="font-label-md text-label-md text-secondary font-semibold" onclick="app.showToast('Showing all categories')">View All</button>
+            <button class="font-label-md text-label-md text-secondary font-semibold" onclick="app.showToast('Showing categories')">All</button>
           </div>
 
           <div id="add-category-carousel" class="flex items-center gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
-            <!-- Selected Item: Food & Dining -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-secondary-container text-on-secondary-container transition-all" onclick="app.selectCategory(this, 'Food & Dining', 'restaurant')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-                <span class="material-symbols-outlined text-secondary-fixed text-[24px]">restaurant</span>
-              </div>
-              <span class="font-label-sm text-label-sm font-semibold">Food &amp; Dining</span>
-            </button>
-
-            <!-- Groceries -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="app.selectCategory(this, 'Groceries', 'shopping_cart')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">shopping_cart</span>
-              </div>
-              <span class="font-label-sm text-label-sm">Groceries</span>
-            </button>
-
-            <!-- Transport -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="app.selectCategory(this, 'Transport', 'local_taxi')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">local_taxi</span>
-              </div>
-              <span class="font-label-sm text-label-sm">Transport</span>
-            </button>
-
-            <!-- Shopping -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="app.selectCategory(this, 'Shopping', 'shopping_bag')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">shopping_bag</span>
-              </div>
-              <span class="font-label-sm text-label-sm">Shopping</span>
-            </button>
-
-            <!-- Bills -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="app.selectCategory(this, 'Bills & Utility', 'receipt_long')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">receipt_long</span>
-              </div>
-              <span class="font-label-sm text-label-sm">Bills &amp; Utility</span>
-            </button>
-
-            <!-- Entertainment -->
-            <button class="category-chip flex flex-col items-center gap-1.5 shrink-0 p-2.5 rounded-2xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="app.selectCategory(this, 'Entertainment', 'movie')">
-              <div class="cat-icon-wrap w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">movie</span>
-              </div>
-              <span class="font-label-sm text-label-sm">Entertainment</span>
-            </button>
+            <!-- Dynamically populated from backend database API via app.renderCategoryChips() -->
+            <div class="p-3 text-xs text-on-surface-variant flex items-center gap-2" id="categories-loading-pill">
+              <span class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+              <span>Loading categories...</span>
+            </div>
           </div>
         </div>
 
@@ -510,17 +468,17 @@
             </div>
             
             <div class="flex flex-wrap gap-2">
-              <button class="account-chip px-3.5 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm" onclick="app.selectAccount(this, 'UPI (GPay / HDFC)')">
+              <button class="account-chip px-3.5 py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center gap-1.5 shadow-sm" onclick="app.selectAccount(this, 'UPI')">
                 <span class="material-symbols-outlined text-[16px] text-secondary-fixed">account_balance_wallet</span>
-                UPI (GPay / HDFC)
+                UPI
               </button>
               <button class="account-chip px-3.5 py-2 rounded-full bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5" onclick="app.selectAccount(this, 'Cash')">
                 <span class="material-symbols-outlined text-[16px] text-on-surface-variant">payments</span>
                 Cash
               </button>
-              <button class="account-chip px-3.5 py-2 rounded-full bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5" onclick="app.selectAccount(this, 'ICICI Coral Card')">
+              <button class="account-chip px-3.5 py-2 rounded-full bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-1.5" onclick="app.selectAccount(this, 'Card')">
                 <span class="material-symbols-outlined text-[16px] text-on-surface-variant">credit_card</span>
-                ICICI Coral Card
+                Card
               </button>
             </div>
           </div>
@@ -532,11 +490,11 @@
                 <span class="material-symbols-outlined text-[18px]">calendar_today</span>
               </div>
               <div>
-                <p class="font-title-md text-title-md text-on-surface">Today, 24 Oct</p>
-                <p class="font-body-sm text-body-sm text-on-surface-variant">04:30 PM • Auto Synced</p>
+                <p class="font-title-md text-title-md text-on-surface" id="add-expense-date-label">Today</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant" id="add-expense-time-label">Auto Synced</p>
               </div>
             </div>
-            <button onclick="app.showToast('Date synced with device time')" class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
+            <button onclick="app.showToast('Date synced with current device timestamp')" class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
               Change
             </button>
           </div>
@@ -546,7 +504,7 @@
         <div class="p-3.5 rounded-xl bg-surface-container-high flex items-center gap-3">
           <span class="material-symbols-outlined text-[20px] text-secondary">security</span>
           <p class="font-body-sm text-body-sm text-on-surface flex-1">
-            <strong class="font-semibold">Anti-duplicate active:</strong> No matching transactions found in the last 2 hours.
+            <strong class="font-semibold">Anti-duplicate active:</strong> Duplicate detection enabled.
           </p>
         </div>
 
@@ -625,10 +583,10 @@
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-secondary-fixed text-[20px]">calendar_month</span>
-              <span class="font-title-md text-title-md text-on-primary font-semibold">October 2024</span>
+              <span class="font-title-md text-title-md text-on-primary font-semibold" id="activity-month-label">This Month</span>
             </div>
             <span id="activity-txn-count" class="font-label-sm text-label-sm bg-surface-container/20 text-on-primary px-2.5 py-1 rounded-full">
-              48 Transactions
+              0 Transactions
             </span>
           </div>
 
@@ -636,10 +594,9 @@
             <div class="flex flex-col bg-surface-container-highest/10 rounded-lg p-2.5">
               <span class="font-label-sm text-label-sm text-on-primary-container font-medium">Total Spent</span>
               <div class="flex items-baseline gap-1 mt-0.5">
-                <span id="activity-total-spent" class="font-headline-sm text-headline-sm text-on-primary tracking-tight">₹28,450</span>
-                <span class="font-label-sm text-label-sm text-error font-semibold flex items-center">
-                  <span class="material-symbols-outlined text-[13px]">trending_up</span>
-                  12%
+                <span id="activity-total-spent" class="font-headline-sm text-headline-sm text-on-primary tracking-tight">₹0</span>
+                <span class="font-label-sm text-label-sm text-secondary-fixed font-semibold flex items-center" id="activity-spent-trend">
+                  Active
                 </span>
               </div>
             </div>
@@ -647,7 +604,7 @@
             <div class="flex flex-col bg-surface-container-highest/10 rounded-lg p-2.5">
               <span class="font-label-sm text-label-sm text-on-primary-container font-medium">Income Earned</span>
               <div class="flex items-baseline gap-1 mt-0.5">
-                <span id="activity-income-earned" class="font-headline-sm text-headline-sm text-secondary-fixed tracking-tight">₹62,000</span>
+                <span id="activity-income-earned" class="font-headline-sm text-headline-sm text-secondary-fixed tracking-tight">₹0</span>
                 <span class="font-label-sm text-label-sm text-secondary-fixed font-semibold flex items-center">
                   <span class="material-symbols-outlined text-[13px]">arrow_downward</span>
                   Safe
@@ -660,10 +617,10 @@
           <div class="w-full mt-3 pt-2">
             <div class="flex justify-between items-center text-label-sm font-label-sm text-on-primary-container mb-1">
               <span>Monthly Budget Burn</span>
-              <span id="activity-burn-percent" class="text-on-primary font-medium">45.8%</span>
+              <span id="activity-burn-percent" class="text-on-primary font-medium">0%</span>
             </div>
             <div class="w-full h-1.5 bg-surface-container-highest/20 rounded-full overflow-hidden">
-              <div id="activity-burn-bar" class="h-full bg-secondary-container rounded-full" style="width: 45.8%;"></div>
+              <div id="activity-burn-bar" class="h-full bg-secondary-container rounded-full" style="width: 0%;"></div>
             </div>
           </div>
         </section>
@@ -687,9 +644,9 @@
 
         <!-- End-of-feed Delight Pill -->
         <div class="flex items-center justify-center py-2">
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm" id="activity-footer-tip">
             <span class="material-symbols-outlined text-[15px] text-secondary">eco</span>
-            <span>You stayed ₹2,300 under budget this week!</span>
+            <span>Record your daily transactions to stay within budget</span>
           </div>
         </div>
       </section>
@@ -718,8 +675,8 @@
                 <span class="font-label-sm text-label-sm uppercase tracking-wider text-on-secondary-container font-bold">Smart Insight</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
               </div>
-              <p class="font-body-md text-body-md text-on-secondary-container font-medium mt-0.5 leading-snug">
-                You spent <span class="font-bold underline decoration-secondary">₹1,400 less</span> on dining out on weekdays compared to last week. Great progress! 🎯
+              <p class="font-body-md text-body-md text-on-secondary-container font-medium mt-0.5 leading-snug" id="insights-smart-tip">
+                Your spending patterns and category pace will update dynamically as transactions are recorded.
               </p>
             </div>
           </div>
@@ -736,10 +693,10 @@
               </div>
             </div>
             <div class="mt-2">
-              <div class="font-currency-metric text-currency-metric text-primary" id="insights-total-spent">₹28,450</div>
+              <div class="font-currency-metric text-currency-metric text-primary" id="insights-total-spent">₹0</div>
               <div class="flex items-center gap-1 mt-1 text-on-tertiary-container font-label-sm text-label-sm font-semibold">
-                <span class="material-symbols-outlined text-[14px]">trending_down</span>
-                <span>8% vs last mo</span>
+                <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                <span id="insights-spent-period">Current cycle</span>
               </div>
             </div>
           </div>
@@ -753,8 +710,8 @@
               </div>
             </div>
             <div class="mt-2">
-              <div class="font-currency-metric text-currency-metric text-primary" id="insights-daily-avg">₹1,185</div>
-              <div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Normal pacing</div>
+              <div class="font-currency-metric text-currency-metric text-primary" id="insights-daily-avg">₹0</div>
+              <div class="font-body-sm text-body-sm text-on-surface-variant mt-1" id="insights-daily-pacing">Calculated daily</div>
             </div>
           </div>
 
@@ -767,9 +724,9 @@
               </div>
             </div>
             <div class="mt-2">
-              <div class="font-title-md text-title-md text-primary truncate" id="insights-top-cat-name">Food &amp; Drinks</div>
+              <div class="font-title-md text-title-md text-primary truncate" id="insights-top-cat-name">None</div>
               <div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="insights-top-cat-spend">
-                ₹9,800 <span class="font-semibold text-primary">(34%)</span>
+                ₹0 <span class="font-semibold text-primary">(0%)</span>
               </div>
             </div>
           </div>
@@ -783,8 +740,8 @@
               </div>
             </div>
             <div class="mt-2">
-              <div class="font-currency-metric text-currency-metric text-secondary" id="insights-safe-daily">₹590 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ day</span></div>
-              <div class="font-label-sm text-label-sm text-on-surface-variant mt-1" id="insights-safe-days-left">7 days remaining</div>
+              <div class="font-currency-metric text-currency-metric text-secondary" id="insights-safe-daily">₹0 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ day</span></div>
+              <div class="font-label-sm text-label-sm text-on-surface-variant mt-1" id="insights-safe-days-left">-- days remaining</div>
             </div>
           </div>
         </div>
@@ -798,7 +755,7 @@
             </div>
             <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
               <span class="w-2 h-0.5 bg-outline rounded-full"></span>
-              <span>Limit: ₹1,200</span>
+              <span id="insights-daily-limit-badge">Limit: ₹0</span>
             </div>
           </div>
 
@@ -807,51 +764,51 @@
             <!-- Target Reference Line -->
             <div class="absolute left-0 right-0 top-[38%] flex items-center z-10 pointer-events-none">
               <div class="w-full border-t border-dashed border-outline-variant"></div>
-              <span class="absolute right-0 -top-4 font-label-sm text-label-sm text-outline bg-surface-container-lowest px-1">₹1.2k</span>
+              <span class="absolute right-0 -top-4 font-label-sm text-label-sm text-outline bg-surface-container-lowest px-1" id="insights-chart-ref-label">Target</span>
             </div>
 
             <!-- Bars Flex Grid -->
             <div class="flex items-end justify-between h-32 px-1 relative z-20">
               <!-- Mon -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">950</span>
-                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 60px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-on-surface-variant">M</span>
               </div>
               <!-- Tue -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">1100</span>
-                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 72px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-on-surface-variant">T</span>
               </div>
               <!-- Wed -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">780</span>
-                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 48px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-on-surface-variant">W</span>
               </div>
-              <!-- Thu (Highlighted) -->
+              <!-- Thu -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">1420</span>
-                <div class="daily-chart-bar w-full bg-secondary-container hover:bg-secondary-fixed rounded-t-lg transition-all" style="height: 96px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-secondary-container hover:bg-secondary-fixed rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-primary font-bold">T</span>
               </div>
               <!-- Fri -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">1050</span>
-                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 68px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-on-surface-variant">F</span>
               </div>
-              <!-- Sat (High Bar) -->
+              <!-- Sat -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">1680</span>
-                <div class="daily-chart-bar w-full bg-primary hover:bg-primary-container rounded-t-lg transition-all" style="height: 112px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-primary hover:bg-primary-container rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-primary font-bold">S</span>
               </div>
               <!-- Sun -->
               <div class="flex flex-col items-center gap-2 group w-7">
-                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">820</span>
-                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 52px;"></div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">0</span>
+                <div class="daily-chart-bar w-full bg-surface-container-high hover:bg-secondary-fixed-dim rounded-t-lg transition-all" style="height: 8px;"></div>
                 <span class="font-label-sm text-label-sm text-on-surface-variant">S</span>
               </div>
             </div>
@@ -909,18 +866,18 @@
       <section id="view-profile" class="tab-view flex-col w-full space-y-space-md">
         <!-- User Profile Card -->
         <div class="p-5 rounded-2xl bg-surface-container-lowest shadow-sm flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary text-[28px] font-bold shadow-md">
-            R
+          <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary text-[28px] font-bold shadow-md" id="profile-avatar-initial">
+            U
           </div>
           <div class="flex flex-col flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Rohan Sharma</h2>
-              <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">PRO</span>
+              <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate" id="profile-user-name">User</h2>
+              <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">MEMBER</span>
             </div>
-            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">rohan.sharma@fintech.io</p>
-            <p class="font-label-sm text-label-sm text-secondary font-medium mt-0.5 flex items-center gap-1">
+            <p class="font-body-sm text-body-sm text-on-surface-variant truncate" id="profile-user-email">user@smartspend.app</p>
+            <p class="font-label-sm text-label-sm text-secondary font-medium mt-0.5 flex items-center gap-1" id="profile-user-upi">
               <span class="material-symbols-outlined text-[14px]">verified_user</span>
-              UPI ID: rohan@okhdfcbank
+              <span>SmartSpend Verified</span>
             </p>
           </div>
         </div>
@@ -928,19 +885,19 @@
         <!-- Linked Payment Methods -->
         <div class="p-4 rounded-2xl bg-surface-container-lowest shadow-sm space-y-3">
           <div class="flex items-center justify-between">
-            <span class="font-title-md text-title-md text-on-surface font-bold">Linked Accounts</span>
-            <span class="font-label-sm text-label-sm text-on-surface-variant">3 Active</span>
+            <span class="font-title-md text-title-md text-on-surface font-bold">Payment Methods</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Default</span>
           </div>
           
           <div class="space-y-2">
             <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-primary-container text-secondary-fixed flex items-center justify-center">
-                  <span class="material-symbols-outlined text-[18px]">account_balance</span>
+                  <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                 </div>
                 <div>
-                  <p class="font-title-md text-title-md text-on-surface text-[14px]">HDFC Salary Account</p>
-                  <p class="font-body-sm text-body-sm text-on-surface-variant">****4912 • Primary UPI</p>
+                  <p class="font-title-md text-title-md text-on-surface text-[14px]">Primary UPI</p>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Default Payment Method</p>
                 </div>
               </div>
               <span class="text-secondary font-label-sm text-label-sm font-semibold">Active</span>
@@ -949,14 +906,14 @@
             <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center">
-                  <span class="material-symbols-outlined text-[18px]">credit_card</span>
+                  <span class="material-symbols-outlined text-[18px]">payments</span>
                 </div>
                 <div>
-                  <p class="font-title-md text-title-md text-on-surface text-[14px]">ICICI Coral Card</p>
-                  <p class="font-body-sm text-body-sm text-on-surface-variant">****8102 • Limit ₹2,50,000</p>
+                  <p class="font-title-md text-title-md text-on-surface text-[14px]">Cash Wallet</p>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Cash in Hand</p>
                 </div>
               </div>
-              <span class="text-on-surface-variant font-label-sm text-label-sm">Linked</span>
+              <span class="text-on-surface-variant font-label-sm text-label-sm">Ready</span>
             </div>
           </div>
         </div>
@@ -970,7 +927,7 @@
               <span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
               <div>
                 <p class="font-body-md text-body-md text-on-surface font-medium">Monthly Spend Target</p>
-                <p class="font-body-sm text-body-sm text-on-surface-variant" id="profile-monthly-limit">₹45,000</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant" id="profile-monthly-limit">₹0</p>
               </div>
             </div>
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant">edit</span>
@@ -981,7 +938,7 @@
               <span class="material-symbols-outlined text-primary text-[20px]">today</span>
               <div>
                 <p class="font-body-md text-body-md text-on-surface font-medium">Daily Allowance Target</p>
-                <p class="font-body-sm text-body-sm text-on-surface-variant" id="profile-daily-limit">₹1,200</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant" id="profile-daily-limit">₹0</p>
               </div>
             </div>
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant">edit</span>
@@ -1016,10 +973,10 @@
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant">chevron_right</span>
           </div>
 
-          <div class="flex items-center justify-between py-2 cursor-pointer text-error" onclick="if(confirm('Reset all demo transactions to default?')) app.resetState()">
+          <div class="flex items-center justify-between py-2 cursor-pointer text-on-surface hover:text-secondary transition-colors" onclick="app.syncRealtimeData()">
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-error text-[20px]">restart_alt</span>
-              <span class="font-body-md text-body-md font-medium">Reset Demo Ledger</span>
+              <span class="material-symbols-outlined text-[20px]">sync</span>
+              <span class="font-body-md text-body-md font-medium">Sync Data with Backend</span>
             </div>
             <span class="material-symbols-outlined text-[18px]">chevron_right</span>
           </div>
@@ -1094,9 +1051,9 @@
           <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center mb-2">
             <span class="material-symbols-outlined text-[28px] text-primary" id="modalIcon">receipt</span>
           </div>
-          <h3 class="font-headline-md text-headline-md text-on-surface font-bold" id="modalMerchant">Merchant Name</h3>
-          <span class="font-body-md text-body-md text-on-surface-variant mt-0.5" id="modalCategory">Category</span>
-          <div class="font-currency-display text-currency-display text-on-surface font-bold tracking-tight mt-2" id="modalAmount">-₹0</div>
+          <h3 class="font-headline-md text-headline-md text-on-surface font-bold" id="modalMerchant">--</h3>
+          <span class="font-body-md text-body-md text-on-surface-variant mt-0.5" id="modalCategory">--</span>
+          <div class="font-currency-display text-currency-display text-on-surface font-bold tracking-tight mt-2" id="modalAmount">₹0</div>
         </div>
 
         <!-- Key-Value Tiles -->
@@ -1117,7 +1074,7 @@
           </div>
           <div class="flex flex-col mt-2">
             <span class="font-label-sm text-label-sm text-on-surface-variant">Tag / Notes</span>
-            <span class="font-body-md text-body-md text-on-surface font-medium truncate" id="modalNote">Personal Split</span>
+            <span class="font-body-md text-body-md text-on-surface font-medium truncate" id="modalNote">--</span>
           </div>
         </div>
 
@@ -1149,7 +1106,7 @@
           <h4 class="font-title-md text-title-md font-bold text-on-surface">Delete Entry?</h4>
         </div>
         <p class="font-body-md text-body-md text-on-surface-variant">
-          This transaction will be permanently removed from your October ledger calculation.
+          This transaction will be permanently removed from your ledger.
         </p>
         <div class="flex items-center justify-end gap-2 mt-2">
           <button class="px-4 h-10 rounded-full font-label-md text-label-md text-on-surface bg-surface-container" onclick="app.cancelDelete()">
@@ -1184,18 +1141,10 @@
           <p class="absolute bottom-4 text-center font-label-sm text-label-sm text-secondary-fixed">Align QR code inside frame</p>
         </div>
         
-        <p class="text-slate-300 text-xs mt-4">Tap a demo merchant below to simulate instant UPI capture:</p>
-        
-        <!-- Quick Demo QR Chips -->
-        <div class="flex flex-wrap gap-2 mt-3 justify-center max-w-xs">
-          <button onclick="app.simulateScanSelect('Blue Tokai Coffee', 380, 'Food & Dining', 'restaurant')" class="px-3 py-1.5 rounded-full bg-slate-800 text-secondary-fixed text-xs border border-secondary-fixed/40 hover:bg-slate-700 transition-all">
-            ☕ Blue Tokai (₹380)
-          </button>
-          <button onclick="app.simulateScanSelect('Uber Premier Ride', 290, 'Transport', 'local_taxi')" class="px-3 py-1.5 rounded-full bg-slate-800 text-secondary-fixed text-xs border border-secondary-fixed/40 hover:bg-slate-700 transition-all">
-            🚕 Uber Ride (₹290)
-          </button>
-          <button onclick="app.simulateScanSelect('Nature Basket', 820, 'Groceries', 'shopping_basket')" class="px-3 py-1.5 rounded-full bg-slate-800 text-secondary-fixed text-xs border border-secondary-fixed/40 hover:bg-slate-700 transition-all">
-            🥦 Grocery (₹820)
+        <div class="w-full max-w-xs mt-4 flex items-center gap-2">
+          <input id="upiScanInput" type="text" placeholder="Enter UPI ID or Merchant" class="flex-1 h-10 px-3 rounded-full bg-slate-800 text-slate-100 text-xs border border-slate-700 focus:outline-none focus:border-secondary-fixed"/>
+          <button onclick="app.processScannedUpi()" class="px-4 h-10 rounded-full bg-secondary-fixed text-primary font-semibold text-xs active:scale-95 transition-transform">
+            Capture
           </button>
         </div>
       </div>
@@ -1240,7 +1189,7 @@
               <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
             </div>
             <div class="bg-surface-container text-on-surface rounded-2xl rounded-tl-xs p-3 max-w-[85%] font-body-sm leading-snug">
-              Hello Rohan! I'm your SmartSpend AI assistant. Ask me anything about your current budget, category pacing, or upcoming subscriptions!
+              Hello! I'm your SmartSpend AI assistant. Ask me anything about your current budget, category pacing, or upcoming subscriptions!
             </div>
           </div>
         </div>
