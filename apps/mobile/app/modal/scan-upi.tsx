@@ -132,10 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: '#B6F16A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
+    boxShadow: '0px 4px 16px rgba(182, 241, 106, 0.25)',
     elevation: 6,
   },
   laser: {
@@ -143,10 +140,7 @@ const styles = StyleSheet.create({
     top: '40%',
     width: '90%',
     height: 2,
-    shadowColor: '#B6F16A',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
+    boxShadow: '0px 0px 6px rgba(182, 241, 106, 0.8)',
   },
   inputBar: {
     flexDirection: 'row',

@@ -150,10 +150,7 @@ const styles = StyleSheet.create({
     height: 90,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    boxShadow: '0px 6px 10px rgba(0, 0, 0, 0.15)',
     elevation: 6,
   },
   dotsRow: {

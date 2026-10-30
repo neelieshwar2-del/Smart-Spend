@@ -1,7 +1,7 @@
 import os from 'os';
 import { app } from './app.js';
 import { config } from './config/index.js';
-import { prisma } from './prisma/client.js';
+import { prisma, checkDatabaseHealth } from './prisma/client.js';
 
 function getNetworkAddresses(): { name: string; address: string }[] {
   const interfaces = os.networkInterfaces();
@@ -19,7 +19,7 @@ function getNetworkAddresses(): { name: string; address: string }[] {
   return addresses;
 }
 
-const server = app.listen(config.PORT, '0.0.0.0', () => {
+const server = app.listen(config.PORT, '0.0.0.0', async () => {
   console.log(`\n======================================================`);
   console.log(`  SmartSpend Backend API Server Started Successfully  `);
   console.log(`======================================================`);
@@ -30,7 +30,15 @@ const server = app.listen(config.PORT, '0.0.0.0', () => {
   netAddrs.forEach(net => {
     console.log(`  > Network (${net.name}): http://${net.address}:${config.PORT}${config.API_PREFIX}`);
   });
-  console.log(`======================================================\n`);
+  console.log(`======================================================`);
+
+  const dbStatus = await checkDatabaseHealth();
+  if (dbStatus.connected) {
+    console.log(`  [DB] Connected to PostgreSQL database successfully.`);
+  } else {
+    console.log(`  [DB] Using fast in-memory store (PostgreSQL offline).`);
+  }
+  console.log(`  [LOG] Watching incoming HTTP requests...\n`);
 });
 
 // Graceful Shutdown

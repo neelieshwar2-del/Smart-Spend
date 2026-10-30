@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 import { TransactionQueryParams } from './transaction.schema.js';
 import { PaginatedResult } from '../../types/index.js';
 
@@ -39,10 +39,6 @@ export interface UpdateTransactionData {
 const memoryTransactions = new Map<string, TransactionRecord>();
 
 export class TransactionRepository {
-  private isTestMode(): boolean {
-    return process.env.NODE_ENV === 'test';
-  }
-
   async create(data: {
     userId: string;
     type: string;
@@ -56,7 +52,7 @@ export class TransactionRepository {
     isRecurring?: boolean;
     recurringRuleId?: string | null;
   }): Promise<TransactionRecord> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.transaction.create({
           data: {
@@ -79,7 +75,7 @@ export class TransactionRepository {
           },
         })) as TransactionRecord;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -110,7 +106,7 @@ export class TransactionRepository {
   }
 
   async findById(id: string): Promise<TransactionRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.transaction.findUnique({
           where: { id },
@@ -121,7 +117,7 @@ export class TransactionRepository {
           },
         })) as TransactionRecord | null;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return memoryTransactions.get(id) || null;
@@ -131,7 +127,7 @@ export class TransactionRepository {
     userId: string,
     params: Partial<TransactionQueryParams> = {}
   ): Promise<PaginatedResult<TransactionRecord>> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const where: any = { userId };
 
@@ -188,7 +184,7 @@ export class TransactionRepository {
           },
         };
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -248,7 +244,7 @@ export class TransactionRepository {
   }
 
   async update(id: string, data: UpdateTransactionData): Promise<TransactionRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.transaction.update({
           where: { id },
@@ -269,7 +265,7 @@ export class TransactionRepository {
           },
         })) as TransactionRecord;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -281,12 +277,12 @@ export class TransactionRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.transaction.delete({ where: { id } });
         return true;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return memoryTransactions.delete(id);

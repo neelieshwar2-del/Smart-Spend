@@ -20,7 +20,7 @@ export class AppError extends Error {
 
 export function errorHandler(
   err: any,
-  _req: Request,
+  req: Request,
   res: Response<ApiErrorResponse>,
   _next: NextFunction
 ): void {
@@ -31,6 +31,10 @@ export function errorHandler(
       message: e.message,
       code: e.code
     }));
+
+    if (config.NODE_ENV !== 'test') {
+      console.warn(`[VALIDATION_ERROR] ${req.method} ${req.originalUrl}:`, JSON.stringify(details));
+    }
 
     res.status(400).json({
       success: false,
@@ -45,6 +49,10 @@ export function errorHandler(
 
   // 2. Custom AppError
   if (err instanceof AppError) {
+    if (config.NODE_ENV !== 'test') {
+      console.warn(`[API_ERROR] ${req.method} ${req.originalUrl} -> ${err.statusCode} ${err.code}: ${err.message}`);
+    }
+
     res.status(err.statusCode).json({
       success: false,
       error: {

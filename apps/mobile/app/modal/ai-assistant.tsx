@@ -297,10 +297,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   bubble: {
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(23, 32, 51, 0.04)',
     elevation: 1,
   },
   inputContainer: {

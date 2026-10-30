@@ -148,10 +148,7 @@ const styles = StyleSheet.create({
   notifCard: {
     borderRadius: 16,
     padding: 14,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   cardHeader: {

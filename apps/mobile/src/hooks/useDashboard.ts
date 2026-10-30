@@ -49,7 +49,8 @@ export const useDashboard = () => {
   const query = useQuery<DashboardData>({
     queryKey: ['dashboard'],
     queryFn: () => api.getDashboard(),
-    staleTime: 10000,
+    staleTime: 60000,
+    placeholderData: EMPTY_DASHBOARD,
   });
 
   const refetch = () => {

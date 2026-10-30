@@ -9,6 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
+    "postinstall": "prisma generate",
     "prisma:generate": "node --env-file=../../.env ./node_modules/prisma/build/index.js generate",
     "prisma:migrate": "node --env-file=../../.env ./node_modules/prisma/build/index.js migrate dev",
     "prisma:push": "node --env-file=../../.env ./node_modules/prisma/build/index.js db push",

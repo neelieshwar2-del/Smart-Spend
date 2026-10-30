@@ -30,6 +30,26 @@ export function createApp(): Express {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
+  // HTTP Request Logger Middleware
+  if (config.NODE_ENV !== 'test') {
+    app.use((req, res, next) => {
+      const start = Date.now();
+      const reqTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+      console.log(`[${reqTime}] --> ${req.method} ${req.originalUrl}`);
+
+      res.on('finish', () => {
+        const duration = Date.now() - start;
+        const resTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const status = res.statusCode;
+        const level = status >= 500 ? 'ERROR' : status >= 400 ? 'WARN' : 'OK';
+        console.log(
+          `[${resTime}] <-- ${req.method} ${req.originalUrl} [${status} ${level}] (${duration}ms)`
+        );
+      });
+      next();
+    });
+  }
+
   // Root welcome route
   app.get('/', (_req, res) => {
     res.json({

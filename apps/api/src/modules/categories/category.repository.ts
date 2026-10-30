@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 
 export interface CategoryRecord {
   id: string;
@@ -13,13 +13,27 @@ export interface CategoryRecord {
 
 const memoryCategories = new Map<string, CategoryRecord>();
 
+const DEFAULT_SLUG_MAP: Record<string, { name: string; icon: string; color: string; type: string }> = {
+  cat_food: { name: 'Food & Dining', icon: 'utensils', color: '#F59E0B', type: 'expense' },
+  cat_groceries: { name: 'Groceries', icon: 'shopping-cart', color: '#10B981', type: 'expense' },
+  cat_transport: { name: 'Transport', icon: 'car', color: '#3B82F6', type: 'expense' },
+  cat_shopping: { name: 'Shopping', icon: 'shopping-bag', color: '#EC4899', type: 'expense' },
+  cat_bills: { name: 'Bills & Utilities', icon: 'zap', color: '#8B5CF6', type: 'expense' },
+  cat_entertainment: { name: 'Entertainment', icon: 'film', color: '#F43F5E', type: 'expense' },
+  cat_health: { name: 'Health & Fitness', icon: 'heart', color: '#06B6D4', type: 'expense' },
+  cat_education: { name: 'Education', icon: 'book', color: '#6366F1', type: 'expense' },
+  cat_salary: { name: 'Salary', icon: 'briefcase', color: '#22C55E', type: 'income' },
+  cat_freelance: { name: 'Freelance', icon: 'laptop', color: '#14B8A6', type: 'income' },
+  cat_investments: { name: 'Investments', icon: 'trending-up', color: '#84CC16', type: 'income' },
+};
+
 export class CategoryRepository {
   private isTestMode(): boolean {
     return process.env.NODE_ENV === 'test';
   }
 
   async listCategories(userId: string): Promise<CategoryRecord[]> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.category.findMany({
           where: {
@@ -28,7 +42,7 @@ export class CategoryRepository {
           orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
         });
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -46,20 +60,64 @@ export class CategoryRepository {
   }
 
   async findById(id: string): Promise<CategoryRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
-        return await prisma.category.findUnique({
+        const found = await prisma.category.findUnique({
           where: { id },
         });
+        if (found) return found;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
-    return memoryCategories.get(id) || null;
+
+    const mem = memoryCategories.get(id);
+    if (mem) return mem;
+
+    // Resolve default mobile category slugs (e.g. cat_food, cat_groceries) outside test mode
+    const mapped = !this.isTestMode() ? DEFAULT_SLUG_MAP[id] : undefined;
+    if (mapped) {
+      if (isDatabaseLive()) {
+        try {
+          const byName = await prisma.category.findFirst({
+            where: { name: mapped.name, type: mapped.type },
+          });
+          if (byName) return byName;
+
+          return await prisma.category.create({
+            data: {
+              id,
+              userId: null,
+              name: mapped.name,
+              icon: mapped.icon,
+              color: mapped.color,
+              type: mapped.type,
+              isDefault: true,
+            },
+          });
+        } catch (e) {
+          markDatabaseOffline(e);
+        }
+      }
+      const fallbackCat: CategoryRecord = {
+        id,
+        userId: null,
+        name: mapped.name,
+        icon: mapped.icon,
+        color: mapped.color,
+        type: mapped.type,
+        isDefault: true,
+        createdAt: new Date(),
+      };
+      memoryCategories.set(id, fallbackCat);
+      return fallbackCat;
+    }
+
+    return null;
   }
 
   async findByNameAndType(userId: string, name: string, type: string): Promise<CategoryRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.category.findFirst({
           where: {
@@ -69,7 +127,7 @@ export class CategoryRepository {
           },
         });
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -93,7 +151,7 @@ export class CategoryRepository {
     type: string;
     isDefault?: boolean;
   }): Promise<CategoryRecord> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.category.create({
           data: {
@@ -106,7 +164,7 @@ export class CategoryRepository {
           },
         });
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -125,14 +183,14 @@ export class CategoryRepository {
   }
 
   async update(id: string, data: Partial<CategoryRecord>): Promise<CategoryRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.category.update({
           where: { id },
           data,
         });
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -144,25 +202,25 @@ export class CategoryRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.category.delete({ where: { id } });
         return true;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return memoryCategories.delete(id);
   }
 
   async countLinkedTransactions(categoryId: string): Promise<number> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.transaction.count({
           where: { categoryId },
         });
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return 0;

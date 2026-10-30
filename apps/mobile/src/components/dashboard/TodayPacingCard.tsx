@@ -106,10 +106,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     gap: 12,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(23, 32, 51, 0.05)',
     elevation: 2,
   },
   headerRow: {

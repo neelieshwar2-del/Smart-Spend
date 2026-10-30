@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,13 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowLeft,
-  Check,
+  CheckCircle2,
   Store,
   FileText,
   ShieldCheck,
@@ -24,7 +26,6 @@ import {
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeContext';
-import { Keypad } from '../../src/components/common/Keypad';
 import { useTransactions } from '../../src/hooks/useTransactions';
 import { TransactionType, PaymentMethod, Category, DEFAULT_CATEGORIES } from '../../src/types';
 import { getCategoryIcon } from '../../src/components/dashboard/RecentTransactions';
@@ -33,50 +34,36 @@ export default function AddTransactionModal() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, spacing, radii, typography } = useTheme();
-  const { createTransaction, isCreating } = useTransactions();
+  const { createTransaction, isCreating } = useTransactions(undefined, { enabled: false });
+  const amountInputRef = useRef<any>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      amountInputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // State
   const [type, setType] = useState<TransactionType>('expense');
-  const [amountStr, setAmountStr] = useState<string>('0');
+  const [amountStr, setAmountStr] = useState<string>('');
   const [selectedCatId, setSelectedCatId] = useState<string>(DEFAULT_CATEGORIES[0].id);
   const [merchant, setMerchant] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
-  // Keypad Actions
-  const handleKeyPress = (key: string) => {
-    if (key === '.') {
-      if (amountStr.includes('.')) return;
-      setAmountStr((prev: string) => prev + '.');
-      return;
-    }
-
-    if (amountStr === '0') {
-      setAmountStr(key);
-      return;
-    }
-
-    // Limit to 2 decimal places
-    if (amountStr.includes('.')) {
-      const parts = amountStr.split('.');
-      if (parts[1]?.length >= 2) return;
-    }
-
-    setAmountStr((prev: string) => prev + key);
-  };
-
-  const handleBackspace = () => {
-    if (amountStr.length <= 1) {
-      setAmountStr('0');
-      return;
-    }
-    setAmountStr((prev: string) => prev.slice(0, -1));
+  const handleAmountChange = (val: string) => {
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 2) return;
+    setAmountStr(cleaned);
   };
 
   const handlePresetAdd = (amt: number) => {
     const current = parseFloat(amountStr) || 0;
-    setAmountStr(String(Math.round(current + amt)));
+    setAmountStr(String(Math.round((current + amt) * 100) / 100));
   };
 
   const handleSave = async () => {
@@ -91,7 +78,7 @@ export default function AddTransactionModal() {
     setIsSubmitted(true);
     try {
       await createTransaction({
-        amount: Math.round(parsedAmount * 100), // convert to integer paise
+        amount: parsedAmount,
         type,
         categoryId: selectedCatId,
         title: defaultTitle,
@@ -110,7 +97,10 @@ export default function AddTransactionModal() {
   const filteredCategories = DEFAULT_CATEGORIES.filter(c => c.type === type);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 12) }]}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 12) }]}
+    >
       {/* Top Quick Context Bar */}
       <View style={styles.topBar}>
         <View style={styles.topLeftGroup}>
@@ -140,6 +130,7 @@ export default function AddTransactionModal() {
           styles.scrollContent,
           { paddingBottom: insets.bottom + 24 },
         ]}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Type Switcher Segmented Control */}
@@ -197,17 +188,31 @@ export default function AddTransactionModal() {
         </View>
 
         {/* Primary Amount Input Board */}
-        <View style={[styles.amountBoard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <TouchableOpacity
+          activeOpacity={0.95}
+          onPress={() => amountInputRef.current?.focus()}
+          style={[styles.amountBoard, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
           <Text style={[typography.caption, { color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }]}>
             Enter Amount (INR)
           </Text>
 
           <View style={styles.amountDisplayRow}>
             <Text style={[styles.currencySymbol, { color: colors.textSecondary }]}>₹</Text>
-            <Text style={[typography.display, typography.currency, { color: colors.textPrimary, fontWeight: '700' }]}>
-              {amountStr}
-            </Text>
-            <View style={[styles.blinkingCursor, { backgroundColor: colors.secondaryContainer }]} />
+            <TextInput
+              ref={amountInputRef}
+              value={amountStr}
+              onChangeText={handleAmountChange}
+              placeholder="0"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="decimal-pad"
+              style={[
+                typography.display,
+                typography.currency,
+                styles.amountInput,
+                { color: colors.textPrimary, fontWeight: '700' },
+              ]}
+            />
           </View>
 
           {/* Quick Preset Increment Chips */}
@@ -225,7 +230,7 @@ export default function AddTransactionModal() {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Merchant & Note Card */}
         <View style={[styles.merchantNoteCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -387,15 +392,31 @@ export default function AddTransactionModal() {
           </Text>
         </View>
 
-        {/* Tactile Micro-Keypad Tray with Save Button */}
-        <Keypad
-          onKeyPress={handleKeyPress}
-          onBackspace={handleBackspace}
-          onSave={handleSave}
-          isSaving={isCreating || isSubmitted}
-        />
+        {/* Primary Action Save Button */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleSave}
+          disabled={isCreating || isSubmitted}
+          style={[
+            styles.saveBtn,
+            {
+              backgroundColor: colors.secondaryContainer,
+              opacity: isCreating || isSubmitted ? 0.6 : 1,
+            },
+          ]}
+        >
+          <CheckCircle2 size={22} color={colors.primary} />
+          <Text
+            style={[
+              typography.headline,
+              { color: colors.primary, fontWeight: '700', marginLeft: 8 },
+            ]}
+          >
+            {isCreating || isSubmitted ? 'Saving...' : 'Save Transaction'}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -455,10 +476,7 @@ const styles = StyleSheet.create({
   },
   segmentBtnActive: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(23, 32, 51, 0.1)',
     elevation: 2,
   },
   typeDot: {
@@ -472,27 +490,25 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     borderWidth: 1,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   amountDisplayRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginVertical: 4,
   },
   currencySymbol: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginRight: 4,
   },
-  blinkingCursor: {
-    width: 2,
-    height: 28,
-    marginLeft: 4,
-    borderRadius: 1,
+  amountInput: {
+    minWidth: 80,
+    textAlign: 'center',
+    padding: 0,
+    margin: 0,
   },
   presetsRow: {
     flexDirection: 'row',
@@ -509,10 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     gap: 10,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   inputRow: {
@@ -542,10 +555,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     gap: 10,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   cardHeaderRow: {
@@ -571,10 +581,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     gap: 10,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   accountChipsRow: {
@@ -595,5 +602,16 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderRadius: 12,
+  },
+  saveBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    boxShadow: '0px 4px 8px rgba(68, 110, 0, 0.2)',
+    elevation: 4,
   },
 });

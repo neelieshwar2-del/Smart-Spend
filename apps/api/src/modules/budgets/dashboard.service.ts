@@ -1,4 +1,4 @@
-import { budgetService } from './budget.service.js';
+import { budgetRepository } from './budget.repository.js';
 import { transactionRepository } from '../transactions/transaction.repository.js';
 import { recurringRepository } from '../recurring/recurring.repository.js';
 import { paiseToRupees, formatINR } from '../../utils/money.js';
@@ -86,15 +86,19 @@ export class DashboardService {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-    // 1. Fetch Month Transactions
-    const txnsResult = await transactionRepository.list(userId, {
-      page: 1,
-      startDate: startOfMonth.toISOString(),
-      endDate: endOfMonth.toISOString(),
-      limit: 1000,
-      sortBy: 'transactionDate',
-      sortOrder: 'desc',
-    });
+    // 1. Fetch Month Transactions, Active Budget, and Recurring Subscriptions in parallel
+    const [txnsResult, activeBudget, userRecurring] = await Promise.all([
+      transactionRepository.list(userId, {
+        page: 1,
+        startDate: startOfMonth.toISOString(),
+        endDate: endOfMonth.toISOString(),
+        limit: 1000,
+        sortBy: 'transactionDate',
+        sortOrder: 'desc',
+      }),
+      budgetRepository.findActiveOverallBudget(userId, now),
+      recurringRepository.findByUserId(userId, { isActive: true }),
+    ]);
 
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -128,17 +132,24 @@ export class DashboardService {
 
     const netCashFlow = totalIncome - totalExpenses;
 
-    // 2. Fetch Budget Summary
-    const budgetSummary = await budgetService.getBudgetSummary(userId);
-    const hasBudget = budgetSummary.hasBudget && !!budgetSummary.budget;
-    const b = budgetSummary.budget;
+    // 2. Compute Budget Metrics directly from already-fetched monthly transactions
+    const hasBudget = !!activeBudget;
+    const monthlyLimit = activeBudget?.amountLimit || 4500000;
+    const remainingSafe = Math.max(0, monthlyLimit - totalExpenses);
+    const percentageUsed = Math.min(100, Math.round((totalExpenses / monthlyLimit) * 100));
+    const percentageLeft = Math.max(0, 100 - percentageUsed);
+    const budgetEndMs = activeBudget ? new Date(activeBudget.endDate).getTime() : endOfMonth.getTime();
+    const daysRemaining = Math.max(1, Math.ceil(Math.max(0, budgetEndMs - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const dailyAllowance = Math.round(remainingSafe / daysRemaining);
 
-    const monthlyLimit = b?.amountLimit || 4500000;
-    const remainingSafe = b?.remaining || Math.max(0, monthlyLimit - totalExpenses);
-    const percentageUsed = b?.percentageUsed || Math.min(100, Math.round((totalExpenses / monthlyLimit) * 100));
-    const percentageLeft = b?.percentageLeft || Math.max(0, 100 - percentageUsed);
-    const daysRemaining = b?.daysRemaining || Math.max(1, Math.ceil((endOfMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-    const dailyAllowance = b?.dailyAllowance || Math.round(remainingSafe / daysRemaining);
+    let warningStatus: 'safe' | 'warning' | 'critical' | 'exceeded' = 'safe';
+    if (totalExpenses >= monthlyLimit) {
+      warningStatus = 'exceeded';
+    } else if (percentageUsed >= 90) {
+      warningStatus = 'critical';
+    } else if (percentageUsed >= 75) {
+      warningStatus = 'warning';
+    }
 
     // 3. Today's target & pacing
     const dailyTarget = dailyAllowance > 0 ? dailyAllowance : 120000; // 1,200 INR default daily allowance
@@ -165,12 +176,16 @@ export class DashboardService {
       title: t.title,
       merchant: t.merchant,
       category: t.category?.name || 'General',
+      categoryName: t.category?.name || 'General',
+      categoryIcon: t.category?.icon || (t.type === 'income' ? 'briefcase' : 'receipt'),
+      categoryColor: t.category?.color,
       icon: t.category?.icon || (t.type === 'income' ? 'payments' : 'receipt'),
       type: t.type,
       amount: t.amount,
       amountRupees: paiseToRupees(t.amount),
-      amountFormatted: (t.type === 'income' ? '+' : '-') + formatINR(t.amount),
+      amountFormatted: formatINR(t.amount),
       date: t.transactionDate,
+      transactionDate: t.transactionDate,
       paymentMethod: t.paymentMethod,
     }));
 
@@ -180,7 +195,6 @@ export class DashboardService {
     const smartTip = `${topCatName} is your highest expense this month (${topCatAmtFormatted}). You are currently on track with ${formatINR(bufferRemaining)} buffer remaining today! 🎯`;
 
     // 7. Subscriptions Upcoming
-    const userRecurring = await recurringRepository.findByUserId(userId, { isActive: true });
     const upcomingSubscriptions = userRecurring.length > 0
       ? userRecurring.slice(0, 5).map(r => ({
           title: r.title,
@@ -210,9 +224,9 @@ export class DashboardService {
         amountLimit: monthlyLimit,
         amountLimitRupees: paiseToRupees(monthlyLimit),
         amountLimitFormatted: formatINR(monthlyLimit),
-        totalSpent: b?.totalSpent || totalExpenses,
-        totalSpentRupees: paiseToRupees(b?.totalSpent || totalExpenses),
-        totalSpentFormatted: formatINR(b?.totalSpent || totalExpenses),
+        totalSpent: totalExpenses,
+        totalSpentRupees: paiseToRupees(totalExpenses),
+        totalSpentFormatted: formatINR(totalExpenses),
         remainingSafe,
         remainingSafeRupees: paiseToRupees(remainingSafe),
         remainingSafeFormatted: formatINR(remainingSafe),
@@ -222,7 +236,7 @@ export class DashboardService {
         dailyAllowance,
         dailyAllowanceRupees: paiseToRupees(dailyAllowance),
         dailyAllowanceFormatted: formatINR(dailyAllowance),
-        warningStatus: b?.warningStatus || 'safe',
+        warningStatus,
       },
       todaySpending: {
         todaySpent,

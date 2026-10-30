@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 
 export interface NotificationRecord {
   id: string;
@@ -13,17 +13,13 @@ export interface NotificationRecord {
 const memoryNotifications = new Map<string, NotificationRecord>();
 
 export class NotificationRepository {
-  private isTestMode(): boolean {
-    return process.env.NODE_ENV === 'test';
-  }
-
   async create(data: {
     userId: string;
     type: string;
     title: string;
     message: string;
   }): Promise<NotificationRecord> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.notification.create({
           data: {
@@ -33,8 +29,8 @@ export class NotificationRepository {
             message: data.message,
           },
         });
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -59,7 +55,7 @@ export class NotificationRepository {
   ): Promise<NotificationRecord[]> {
     const limit = params?.limit || 50;
 
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const where: any = { userId };
         if (params?.unreadOnly) {
@@ -71,8 +67,8 @@ export class NotificationRepository {
           orderBy: { createdAt: 'desc' },
           take: limit,
         });
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -87,11 +83,11 @@ export class NotificationRepository {
   }
 
   async findById(id: string): Promise<NotificationRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.notification.findUnique({ where: { id } });
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -99,14 +95,14 @@ export class NotificationRepository {
   }
 
   async markAsRead(id: string, userId: string): Promise<NotificationRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.notification.update({
           where: { id, userId },
           data: { readAt: new Date() },
         });
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -119,15 +115,15 @@ export class NotificationRepository {
   }
 
   async markAllAsRead(userId: string): Promise<number> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const result = await prisma.notification.updateMany({
           where: { userId, readAt: null },
           data: { readAt: new Date() },
         });
         return result.count;
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -143,13 +139,13 @@ export class NotificationRepository {
   }
 
   async countUnread(userId: string): Promise<number> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.notification.count({
           where: { userId, readAt: null },
         });
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 

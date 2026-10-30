@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 
 export interface BudgetRecord {
   id: string;
@@ -31,10 +31,6 @@ export interface UpdateBudgetData {
 const memoryBudgets = new Map<string, BudgetRecord>();
 
 export class BudgetRepository {
-  private isTestMode(): boolean {
-    return process.env.NODE_ENV === 'test';
-  }
-
   async create(data: {
     userId: string;
     name: string;
@@ -44,7 +40,7 @@ export class BudgetRepository {
     startDate: Date;
     endDate: Date;
   }): Promise<BudgetRecord> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.budget.create({
           data: {
@@ -63,7 +59,7 @@ export class BudgetRepository {
           },
         })) as BudgetRecord;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -85,7 +81,7 @@ export class BudgetRepository {
   }
 
   async findById(id: string): Promise<BudgetRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.budget.findUnique({
           where: { id },
@@ -96,14 +92,14 @@ export class BudgetRepository {
           },
         })) as BudgetRecord | null;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return memoryBudgets.get(id) || null;
   }
 
   async list(userId: string): Promise<BudgetRecord[]> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.budget.findMany({
           where: { userId },
@@ -115,7 +111,7 @@ export class BudgetRepository {
           orderBy: { createdAt: 'desc' },
         })) as BudgetRecord[];
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return Array.from(memoryBudgets.values())
@@ -124,7 +120,7 @@ export class BudgetRepository {
   }
 
   async findActiveOverallBudget(userId: string, date: Date): Promise<BudgetRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.budget.findFirst({
           where: {
@@ -136,7 +132,7 @@ export class BudgetRepository {
           orderBy: { amountLimit: 'desc' },
         })) as BudgetRecord | null;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -151,7 +147,7 @@ export class BudgetRepository {
   }
 
   async update(id: string, data: UpdateBudgetData): Promise<BudgetRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         return (await prisma.budget.update({
           where: { id },
@@ -170,7 +166,7 @@ export class BudgetRepository {
           },
         })) as BudgetRecord;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
 
@@ -182,12 +178,12 @@ export class BudgetRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.budget.delete({ where: { id } });
         return true;
       } catch (e) {
-        // fallback
+        markDatabaseOffline(e);
       }
     }
     return memoryBudgets.delete(id);

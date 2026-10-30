@@ -318,10 +318,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     borderWidth: 1,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   userRow: {
@@ -349,10 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     gap: 4,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   itemRow: {

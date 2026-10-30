@@ -15,6 +15,8 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          lazy: false,
+          freezeOnBlur: true,
           tabBarShowLabel: true,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
@@ -26,10 +28,7 @@ export default function TabsLayout() {
             paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
             paddingTop: 8,
             elevation: 10,
-            shadowColor: '#172033',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.06,
-            shadowRadius: 16,
+            boxShadow: '0px -4px 16px rgba(23, 32, 51, 0.06)',
           },
           tabBarLabelStyle: {
             fontSize: 11,
@@ -70,7 +69,6 @@ export default function TabsLayout() {
                     styles.floatingAddBtn,
                     {
                       backgroundColor: colors.secondaryContainer,
-                      shadowColor: '#446E00',
                     },
                   ]}
                 >
@@ -124,9 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 27,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
+    boxShadow: '0px 8px 12px rgba(68, 110, 0, 0.28)',
     elevation: 8,
   },
 });

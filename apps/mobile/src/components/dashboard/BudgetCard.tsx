@@ -114,10 +114,7 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
+    boxShadow: '0px 8px 16px rgba(23, 32, 51, 0.25)',
     elevation: 6,
   },
   ambientGlow: {

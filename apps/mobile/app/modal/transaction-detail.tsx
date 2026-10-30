@@ -90,13 +90,15 @@ export default function TransactionDetailModal() {
               typography.display,
               typography.currency,
               {
-                color: isIncome ? colors.secondary : colors.textPrimary,
+                color: isIncome ? colors.secondary : colors.danger,
                 fontWeight: '700',
                 marginTop: 8,
               },
             ]}
           >
-            {isIncome ? `+${txn.amountFormatted}` : `-${txn.amountFormatted}`}
+            {isIncome
+              ? `+${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`
+              : `-${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`}
           </Text>
         </View>
 
@@ -212,10 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 48,
     borderRadius: 9999,
-    shadowColor: '#446E00',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(68, 110, 0, 0.15)',
     elevation: 3,
   },
 });

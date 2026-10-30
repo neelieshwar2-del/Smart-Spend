@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 
 export interface UserRecord {
   id: string;
@@ -24,31 +24,16 @@ export interface RefreshTokenRecord {
 // In-memory fallback cache for offline development and isolated test suites
 const memoryUsers = new Map<string, UserRecord>();
 const memoryTokens = new Map<string, RefreshTokenRecord>();
-let isDbAvailable: boolean | null = null;
 
 export class AuthRepository {
-  private async isDatabaseLive(): Promise<boolean> {
-    if (process.env.NODE_ENV === 'test') {
-      return false; // Fast, isolated tests without external socket timeouts
-    }
-    if (isDbAvailable !== null) return isDbAvailable;
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      isDbAvailable = true;
-    } catch {
-      isDbAvailable = false;
-    }
-    return isDbAvailable;
-  }
-
   async findUserByEmail(email: string): Promise<UserRecord | null> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.user.findUnique({
           where: { email: email.toLowerCase() },
         });
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
 
@@ -62,11 +47,11 @@ export class AuthRepository {
   }
 
   async findUserById(id: string): Promise<UserRecord | null> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.user.findUnique({ where: { id } });
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
     return memoryUsers.get(id) || null;
@@ -79,7 +64,7 @@ export class AuthRepository {
     currency: string;
     timezone: string;
   }): Promise<UserRecord> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         const user = await prisma.user.create({
           data: {
@@ -93,7 +78,7 @@ export class AuthRepository {
         await this.createDefaultCategories(user.id);
         return user;
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
 
@@ -153,7 +138,7 @@ export class AuthRepository {
           endDate: endOfMonth,
         },
       });
-    } catch (e) {
+    } catch {
       // Safe ignore in fallback mode
     }
   }
@@ -164,7 +149,7 @@ export class AuthRepository {
     family: string;
     expiresAt: Date;
   }): Promise<RefreshTokenRecord> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.refreshToken.create({
           data: {
@@ -175,7 +160,7 @@ export class AuthRepository {
           },
         });
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
 
@@ -193,20 +178,20 @@ export class AuthRepository {
   }
 
   async findRefreshToken(hashedToken: string): Promise<RefreshTokenRecord | null> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         return await prisma.refreshToken.findUnique({
           where: { hashedToken },
         });
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
     return memoryTokens.get(hashedToken) || null;
   }
 
   async revokeRefreshToken(hashedToken: string): Promise<void> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.refreshToken.updateMany({
           where: { hashedToken },
@@ -214,7 +199,7 @@ export class AuthRepository {
         });
         return;
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
     const record = memoryTokens.get(hashedToken);
@@ -224,7 +209,7 @@ export class AuthRepository {
   }
 
   async revokeTokenFamily(family: string): Promise<void> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.refreshToken.updateMany({
           where: { family },
@@ -232,7 +217,7 @@ export class AuthRepository {
         });
         return;
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
     for (const t of memoryTokens.values()) {
@@ -243,7 +228,7 @@ export class AuthRepository {
   }
 
   async updatePassword(userId: string, passwordHash: string): Promise<void> {
-    if (await this.isDatabaseLive()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.user.update({
           where: { id: userId },
@@ -251,7 +236,7 @@ export class AuthRepository {
         });
         return;
       } catch (e) {
-        isDbAvailable = false;
+        markDatabaseOffline(e);
       }
     }
     const u = memoryUsers.get(userId);
@@ -269,4 +254,3 @@ export class AuthRepository {
 }
 
 export const authRepository = new AuthRepository();
-

@@ -139,12 +139,14 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transact
                       typography.subtitle,
                       typography.currency,
                       {
-                        color: isIncome ? colors.secondary : colors.textPrimary,
+                        color: isIncome ? colors.secondary : colors.danger,
                         fontWeight: '700',
                       },
                     ]}
                   >
-                    {isIncome ? `+${txn.amountFormatted}` : `-${txn.amountFormatted}`}
+                    {isIncome
+                      ? `+${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`
+                      : `-${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`}
                   </Text>
                   <Text style={[typography.caption, { color: colors.textMuted, marginTop: 2 }]}>
                     {txn.paymentMethod || 'UPI'}
@@ -192,10 +194,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(23, 32, 51, 0.04)',
     elevation: 2,
   },
   txnRow: {

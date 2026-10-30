@@ -1,4 +1,4 @@
-import { prisma } from '../../prisma/client.js';
+import { prisma, isDatabaseLive, markDatabaseOffline } from '../../prisma/client.js';
 import { RecurringQueryParams } from './recurring.schema.js';
 import { categoryRepository } from '../categories/category.repository.js';
 
@@ -28,10 +28,6 @@ export interface RecurringRuleRecord {
 const memoryRecurring = new Map<string, RecurringRuleRecord>();
 
 export class RecurringRepository {
-  private isTestMode(): boolean {
-    return process.env.NODE_ENV === 'test';
-  }
-
   async create(data: {
     userId: string;
     title: string;
@@ -45,7 +41,7 @@ export class RecurringRepository {
     autoRecord?: boolean;
     isActive?: boolean;
   }): Promise<RecurringRuleRecord> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const created = await prisma.recurringRule.create({
           data: {
@@ -71,8 +67,8 @@ export class RecurringRepository {
           paymentMethod: data.paymentMethod || 'UPI',
           autoRecord: data.autoRecord ?? true,
         };
-      } catch {
-        // Fallback to memory store
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -102,7 +98,7 @@ export class RecurringRepository {
   }
 
   async findById(id: string): Promise<RecurringRuleRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const found = await prisma.recurringRule.findUnique({
           where: { id },
@@ -119,8 +115,8 @@ export class RecurringRepository {
             autoRecord: true,
           };
         }
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -128,7 +124,7 @@ export class RecurringRepository {
   }
 
   async findByUserId(userId: string, params?: RecurringQueryParams): Promise<RecurringRuleRecord[]> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const where: any = { userId };
         if (params?.isActive !== undefined) where.isActive = params.isActive;
@@ -149,8 +145,8 @@ export class RecurringRepository {
           paymentMethod: 'UPI',
           autoRecord: true,
         }));
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -165,7 +161,7 @@ export class RecurringRepository {
   }
 
   async update(id: string, data: Partial<RecurringRuleRecord>): Promise<RecurringRuleRecord | null> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const updateData: any = {};
         if (data.title !== undefined) updateData.title = data.title;
@@ -192,8 +188,8 @@ export class RecurringRepository {
           paymentMethod: data.paymentMethod || 'UPI',
           autoRecord: data.autoRecord ?? true,
         };
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -220,12 +216,12 @@ export class RecurringRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         await prisma.recurringRule.delete({ where: { id } });
         return true;
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 
@@ -233,7 +229,7 @@ export class RecurringRepository {
   }
 
   async findDueRules(upToDate: Date, userId?: string): Promise<RecurringRuleRecord[]> {
-    if (!this.isTestMode()) {
+    if (isDatabaseLive()) {
       try {
         const where: any = {
           isActive: true,
@@ -256,8 +252,8 @@ export class RecurringRepository {
           paymentMethod: 'UPI',
           autoRecord: true,
         }));
-      } catch {
-        // Fallback
+      } catch (e) {
+        markDatabaseOffline(e);
       }
     }
 

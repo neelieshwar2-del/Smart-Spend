@@ -291,12 +291,14 @@ export default function ActivityScreen() {
                             typography.subtitle,
                             typography.currency,
                             {
-                              color: isIncome ? colors.secondary : colors.textPrimary,
+                              color: isIncome ? colors.secondary : colors.danger,
                               fontWeight: '700',
                             },
                           ]}
                         >
-                          {isIncome ? `+${txn.amountFormatted}` : `-${txn.amountFormatted}`}
+                          {isIncome
+                            ? `+${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`
+                            : `-${(txn.amountFormatted || '').replace(/^[+-]+/, '')}`}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -331,10 +333,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 44,
     borderWidth: 1,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    boxShadow: '0px 1px 4px rgba(23, 32, 51, 0.04)',
     elevation: 1,
   },
   filterChip: {
@@ -351,10 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     gap: 12,
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
+    boxShadow: '0px 4px 10px rgba(23, 32, 51, 0.2)',
     elevation: 4,
   },
   snapshotAmbientGlow: {
@@ -416,10 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#172033',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 6px rgba(23, 32, 51, 0.03)',
     elevation: 2,
   },
   txnRow: {
